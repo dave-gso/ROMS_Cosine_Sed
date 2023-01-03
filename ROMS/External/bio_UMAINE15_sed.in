@@ -1,0 +1,131 @@
+!  UMAINE CoSiNE 13 model
+!
+!svn $Id: bio_UMAINE.in 588 2008-03-21 23:09:01Z kate $
+!========================================================= Hernan G. Arango ===
+!  Copyright (c) 2002-2012 The ROMS/TOMS Group                                !
+!    Licensed under a MIT/X style license                                     !
+!    See License_ROMS.txt                                                     !
+!==============================================================================
+!                                                                             !
+! Input parameters can be entered in ANY order, provided that the parameter   !
+! KEYWORD (usually, upper case) is typed correctly followed by "="  or "=="   !
+! symbols. Any comment lines are allowed and must begin with an exclamation   !
+! mark (!) in column one.  Comments may  appear to the right of a parameter   !
+! specification to improve documentation.  Comments will be ignored  during   !
+! reading.  Blank lines are also allowed and ignored. Continuation lines in   !
+! a parameter specification are allowed and must be preceded by a backslash   !
+! (\).  In some instances, more than one value is required for a parameter.   !
+! If fewer values are provided, the  last value  is assigned for the entire   !
+! parameter array.  The multiplication symbol (*),  without blank spaces in   !
+! between, is allowed for a parameter specification.  For example, in a two   !
+! grids nested application:                                                   !
+!                                                                             !
+!    AKT_BAK == 2*1.0d-6  2*5.0d-6              ! m2/s                        !
+!                                                                             !
+! indicates that the first two entries of array AKT_BAK,  in fortran column-  !
+! major order, will have the same value of "1.0d-6" for grid 1,  whereas the  !
+! next two entries will have the same value of "5.0d-6" for grid 2.           !
+!                                                                             !
+! In multiple levels of nesting and/or multiple connected domains  step-ups,  !
+! "Ngrids" entries are expected for some of these parameters.  In such case,  !
+! the order of the entries for a parameter is extremely important.  It  must  !
+! follow the same order (1:Ngrids) as in the state variable declaration. The  !
+! USER may follow the above guidelines for specifying his/her values.  These  !
+! parameters are marked by "==" plural symbol after the KEYWORD.              !
+!                                                                             !
+!  By: PENG XIU 12/2013                                                !
+!==============================================================================
+!
+! NOTICE: Input parameter units are specified within brackets and default 
+! ******  values are specified within braces.
+!
+! Switch to control the computation of sediment biology within nested and/or multiple
+! connected grids.
+
+    Lsedbiology == T
+
+
+! Maximum particulate organic matter decay rate [1/day].
+
+     bUmax == 0.05d0 0.0027d0 0.0d0
+
+! Thickness of benthic sediment layer [m].   
+
+   bdep == 0.1d0
+
+! Ratio of bacterial growth rate to maximum decay rate [nondimensional].   
+ 
+   balpha == 1.0d0
+
+! Sedimentation rate [cm/year]    
+
+   bw == 0.25d0
+
+! Base for temperature dependence of diagenesis [nondimensional]  
+
+   btheta_diag == 1.15d0
+
+! Nitrification rate at reference temperature and unlimited O2 [1/day]   
+
+   bnit == 0.15d0
+
+! Base for temperature dependence of nitrification [nondimensional]  
+  
+   btheta_nit == 1.1d0
+
+! Half saturation constant for O2 dependence of nitrification [mg O2/L]
+
+   bdo_nit == 2.0d0
+
+! Denitrification rate at reference temperature and anoxic conditions [1/day]   
+
+   bdenit == 10.0d0
+
+! Base for temperature dependence of denitrification [nondimensional]. 
+
+   btheta_denit == 1.1d0
+
+! Constant for oxygen dependence of denitrification [mg O2/L]
+
+   bpsi_n == 0.5d0
+
+! Half saturation constant for carbon oxidation [mg/L]
+
+   bdo_c == 4.0d0
+   
+! Stoichiometric coefficient for oxygen consumed by nitrification [nondimensional]                                    
+
+   bao2 == 1.894d0
+
+! fraction of PO4 dissolved in pore water under anoxic conditions [nondimensional]    
+
+   bpi == 0.008d0
+
+! Constant for oxygen dependence of dissolved PO4 [mg/L]
+
+   bpsi_p == 5.0d0
+
+! Particulate carbon partitioning coefficient [nondimensional]   
+
+   bfc == 0.8d0 0.2d0 0.0d0
+
+! Particulate nitrogen partitioning coefficient [nondimensional]   
+
+   bfn == 0.8d0 0.2d0 0.0d0
+
+! Particulate phosphorous partitioning coefficient [nondimensional]   
+
+   bfp == 0.8d0 0.2d0 0.0d0
+
+! Particulate silicon partitioning coefficient [nondimensional]   
+
+   bfs == 0.8d0 0.2d0 0.0d0
+                                                                    
+! Logical switches (TRUE/FALSE) to activate writing of sediment biological fields                                   
+! into HISTORY output file: [1:NBBT,Ngrids].                                                                
+                                                                                                           
+Hout(idbPM) == 4*T    ! bPOC, bPON, bPOP, bSi     sediment particulate matter conc.
+Hout(idbPW) == 4*T    ! bNO3, bNH4, bPO4, bSi	   sediment pore water conc.
+Hout(idbDR) == 4*T    ! bUC, bUN, bUP, bUS        decay rates of sediment PM
+Hout(idbSF) == 5*T    ! JNO3, JNH4, JPO4, JSi, SOD  fluxes between sediment and water                                         
+                                                                                                           

@@ -1,0 +1,224 @@
+
+!
+      USE mod_kinds
+!
+      implicit none
+      integer, parameter :: nspc = 3   ! number of sediment particulate classes
+!
+        real(r8), allocatable :: bUmax(:)
+        real(r8), allocatable :: bdep(:)
+        real(r8), allocatable :: balpha(:)
+        real(r8), allocatable :: bw(:)
+        real(r8), allocatable :: btheta_diag(:)
+        real(r8), allocatable :: bnit(:)
+        real(r8), allocatable :: btheta_nit(:)
+        real(r8), allocatable :: bdo_nit(:)
+        real(r8), allocatable :: bdenit(:)
+        real(r8), allocatable :: btheta_denit(:)
+        real(r8), allocatable :: bpsi_n(:)
+        real(r8), allocatable :: bdo_c(:)
+        real(r8), allocatable :: bao2(:)
+        real(r8), allocatable :: bpi(:)
+        real(r8), allocatable :: bpsi_p(:)
+        real(r8), allocatable :: bfc(:)
+        real(r8), allocatable :: bfn(:)
+        real(r8), allocatable :: bfp(:)
+        real(r8), allocatable :: bfs(:)
+    
+      TYPE T_SEDBIO
+!
+        real(r8), pointer :: bPOC(:,:,:)
+        real(r8), pointer :: bPON(:,:,:)
+        real(r8), pointer :: bPOP(:,:,:)
+        real(r8), pointer :: bPSi(:,:,:)
+
+        real(r8), pointer :: bNO3(:,:)
+        real(r8), pointer :: bNH4(:,:)
+        real(r8), pointer :: bPO4(:,:)
+        real(r8), pointer :: bSi(:,:)
+
+        real(r8), pointer :: bUC(:,:,:)
+        real(r8), pointer :: bUN(:,:,:)
+        real(r8), pointer :: bUP(:,:,:)
+        real(r8), pointer :: bUS(:,:,:)
+
+        real(r8), pointer :: JNO3(:,:)
+        real(r8), pointer :: JNH4(:,:)
+        real(r8), pointer :: JPO4(:,:)
+        real(r8), pointer :: JSi(:,:)
+        real(r8), pointer :: SOD(:,:)
+
+      END TYPE T_SEDBIO
+
+      TYPE (T_SEDBIO), allocatable :: SEDBIO(:)
+
+      CONTAINS
+
+      SUBROUTINE allocate_sedbio (ng, LBi, UBi, LBj, UBj, nspc)
+!
+!=======================================================================
+!                                                                      !
+!  This routine allocates all variables in the module for all nested   !
+!  grids.                                                             !
+!                                                                      !
+!=======================================================================
+!
+      USE mod_param
+      USE mod_ncparam
+!
+!  Imported variable declarations.
+!
+      integer, intent(in) :: ng, LBi, UBi, LBj, UBj, nspc
+!
+!-----------------------------------------------------------------------
+!  Allocate structure variables.
+!-----------------------------------------------------------------------
+!
+      IF (ng.eq.1) THEN
+        allocate ( bUmax(Ngrids,nspc) )
+        allocate ( bdep(Ngrids) )
+        allocate ( balpha(Ngrids) )
+        allocate ( bw(Ngrids) )
+        allocate ( btheta_diag(Ngrids) )
+        allocate ( bnit(Ngrids) )
+        allocate ( btheta_nit(Ngrids) )
+        allocate ( bdo_nit(Ngrids) )
+        allocate ( bdenit(Ngrids) )
+        allocate ( btheta_denit(Ngrids) )
+        allocate ( bpsi_n(Ngrids) )
+        allocate ( bdo_c(Ngrids) )
+        allocate ( bao2(Ngrids) )
+        allocate ( bpi(Ngrids) )
+        allocate ( bpsi_p(Ngrids) )
+        allocate ( bfc(Ngrids,nspc) )
+        allocate ( bfn(Ngrids,nspc) )
+        allocate ( bfp(Ngrids,nspc) )
+        allocate ( bfs(Ngrids,nspc) )
+
+        allocate ( SEDBIO(Ngrids) )
+      END IF
+!
+!  Nonlinear model state.
+!
+
+        allocate ( SEDBIO(ng) % bPOC(LBi:UBi,LBj:UBj,nspc) )
+        allocate ( SEDBIO(ng) % bPON(LBi:UBi,LBj:UBj,nspc) )
+        allocate ( SEDBIO(ng) % bPOP(LBi:UBi,LBj:UBj,nspc) )
+        allocate ( SEDBIO(ng) % bPSi(LBi:UBi,LBj:UBj,nspc) )
+
+        allocate ( SEDBIO(ng) % bNO3(LBi:UBi,LBj:UBj) )
+        allocate ( SEDBIO(ng) % bNH4(LBi:UBi,LBj:UBj) )
+        allocate ( SEDBIO(ng) % bPO4(LBi:UBi,LBj:UBj) )
+        allocate ( SEDBIO(ng) % bSi(LBi:UBi,LBj:UBj) )
+
+        allocate ( SEDBIO(ng) % bUC(LBi:UBi,LBj:UBj,nspc) )
+        allocate ( SEDBIO(ng) % bUN(LBi:UBi,LBj:UBj,nspc) )
+        allocate ( SEDBIO(ng) % bUP(LBi:UBi,LBj:UBj,nspc) )
+        allocate ( SEDBIO(ng) % bUS(LBi:UBi,LBj:UBj,nspc) )
+
+        allocate ( SEDBIO(ng) % JNO3(LBi:UBi,LBj:UBj) )
+        allocate ( SEDBIO(ng) % JNH4(LBi:UBi,LBj:UBj) )
+        allocate ( SEDBIO(ng) % JPO4(LBi:UBi,LBj:UBj) )
+        allocate ( SEDBIO(ng) % JSi(LBi:UBi,LBj:UBj) )
+        allocate ( SEDBIO(ng) % SOD(LBi:UBi,LBj:UBj) )
+
+      RETURN
+      END SUBROUTINE allocate_sedbio
+
+      SUBROUTINE initialize_sedbio (ng, tile, model, nspc)
+!
+!=======================================================================
+!                                                                      !
+!  This routine initialize structure variables in the module using     !
+!  first touch distribution policy. In shared-memory configuration,    !
+!  this operation actually performs the propagation of the  shared     !
+!  arrays  across the cluster,  unless another policy is specified     !
+!  to  override the default.                                           !
+!                                                                      !
+!=======================================================================
+!
+      USE mod_param
+      USE mod_ncparam
+!
+!  Imported variable declarations.
+!
+      integer, intent(in) :: ng, tile, model, nspc
+!
+!  Local variable declarations.
+!
+      integer :: Imin, Imax, Jmin, Jmax
+      integer :: i, itrc, j, k
+
+      real(r8), parameter :: IniVal = 0.0_r8
+
+#include "set_bounds.h"
+!
+!  Set array initialization range.
+!
+#ifdef _OPENMP
+      IF (DOMAIN(ng)%Western_Edge(tile)) THEN
+        Imin=BOUNDS(ng)%LBi(tile)
+      ELSE
+        Imin=Istr
+      END IF
+      IF (DOMAIN(ng)%Eastern_Edge(tile)) THEN
+        Imax=BOUNDS(ng)%UBi(tile)
+      ELSE
+        Imax=Iend
+      END IF
+      IF (DOMAIN(ng)%Southern_Edge(tile)) THEN
+        Jmin=BOUNDS(ng)%LBj(tile)
+      ELSE
+        Jmin=Jstr
+      END IF
+      IF (DOMAIN(ng)%Northern_Edge(tile)) THEN
+        Jmax=BOUNDS(ng)%UBj(tile)
+      ELSE
+        Jmax=Jend
+      END IF
+#else
+      Imin=BOUNDS(ng)%LBi(tile)
+      Imax=BOUNDS(ng)%UBi(tile)
+      Jmin=BOUNDS(ng)%LBj(tile)
+      Jmax=BOUNDS(ng)%UBj(tile)
+#endif
+!
+!-----------------------------------------------------------------------
+!  Initialize sediment biology structure variables.
+!-----------------------------------------------------------------------
+!
+!  Nonlinear model state.
+!
+      IF ((model.eq.0).or.(model.eq.iNLM)) THEN
+
+
+        DO j=Jmin,Jmax
+            DO i=Imin,Imax
+                DO k=1,nspc
+                    SEDBIO(ng) % bPOC(i,j,k) = IniVal
+                    SEDBIO(ng) % bPON(i,j,k) = IniVal
+                    SEDBIO(ng) % bPOP(i,j,k) = IniVal
+                    SEDBIO(ng) % bPSi(i,j,k) = IniVal
+
+                    SEDBIO(ng) % bUC(i,j,k) = IniVal
+                    SEDBIO(ng) % bUN(i,j,k) = IniVal
+                    SEDBIO(ng) % bUP(i,j,k) = IniVal
+                    SEDBIO(ng) % bUS(i,j,k) = IniVal
+                END DO
+                SEDBIO(ng) % bNO3(i,j) = IniVal
+                SEDBIO(ng) % bNH4(i,j) = IniVal
+                SEDBIO(ng) % bPO4(i,j) = IniVal
+                SEDBIO(ng) % bSi(i,j) = IniVal
+
+                SEDBIO(ng) % JNO3(i,j) = IniVal
+                SEDBIO(ng) % JNH4(i,j) = IniVal
+                SEDBIO(ng) % JPO4(i,j) = IniVal
+                SEDBIO(ng) % JSi(i,j) = IniVal
+                SEDBIO(ng) % SOD(i,j) = IniVal
+            END DO
+          
+        END DO
+      END IF
+
+      RETURN
+      END SUBROUTINE initialize_sedbio
