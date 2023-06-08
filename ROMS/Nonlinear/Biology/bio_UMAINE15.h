@@ -347,6 +347,7 @@
 !      real(r8), dimension(LBi:UBi,N(ng),mmax) :: bts
 !      real(r8), parameter :: optic_upd_fac = 10.00_r8
       real(r8) :: dt_optics
+      real(r8), parameter :: kdIniVal = 0.05_r8
 !#else
 !      real(r8), dimension(LBi:UBi,N(ng)) :: kdpar
 #endif
@@ -392,10 +393,7 @@
 
 #include "set_bounds.h"
 
-!      if( tile.eq.91.or.tile.eq.92 ) THEN
-!            write(*,*)'bio: tile =',tile
-!            write(*,*)'bio: LBi=',LBi,'UBi=',UBi,'LBj=',LBj,'UBj=',UBj
-!      endif
+
 #ifdef DIAGNOSTICS_BIO
 !
 !-----------------------------------------------------------------------
@@ -424,11 +422,6 @@
         END DO
       END IF
 #endif
-!        if( tile.eq.0) THEN
-!            write(*,*)'t(3,3,1,1,3)=',t(3,3,1,1,3)
-!            write(*,*)'t(3,3,1,2,3)=',t(3,3,1,2,3)
-!            write(*,*)'t(3,3,1,3,3)=',t(3,3,1,2,3)
-!        endif
 !
 !-----------------------------------------------------------------------
 !  Add biological Source/Sink terms.
@@ -499,12 +492,16 @@
         END DO
 #endif
 #ifdef OPTICS_OP1
-!  get kdpar
-        DO k=1,N(ng)
-          DO i=Istr,Iend
-            kd(i,k)=kdpar(i,j,k)
-          END DO
-        END DO
+!  for land points, set kdpar to nonzero value to avoid NaN generation
+!  below where there is division by kdpar
+!        DO k=1,N(ng)
+!          DO i=Istr,Iend
+!            if( rmask(i,j).eq.0 ) then
+!                kdpar(i,j,k)=kdIniVal
+!            endif
+!            kd(i,k)=kdpar(i,j,k)
+!          END DO
+!        END DO
 #endif
 
 !
@@ -541,30 +538,18 @@
             DO i=Istr,Iend
               Bio_bak(i,k,indx)=MAX(t(i,j,k,nstp,indx),0.000001_r8)
               Bio(i,k,indx)=Bio_bak(i,k,indx)
-!            if( (indx.eq.iNO3_).and.(k.eq.1).and.(i.eq.500).and.(j.eq.790) ) then
-!                arr_size=size(rmask)
-!                write(*,*)'LBi=',LBi,'UBi=',UBi,'LBj=',LBj,'UBj=',UBj
-!                write(*,*)'size of rmask =',arr_size
-!                write(*,*)'time =',time(ng),'tile =',tile
-!                write(*,*)'extracting NO3 at i,j=500,790, t(nstp)=',t(i,j,k,nstp,indx)
-!                write(*,*)'extracting NO3 at i,j=500,790, t(nnew)=',t(i,j,k,nnew,indx)
-!                write(*,*)' Bio(i,k,_iNO3) =',Bio(i,k,indx)
-!                write(*,*)'rmask(i,j)=',rmask(i,j)
-!            endif
-!            if( (indx.eq.iNO3_).and.(k.eq.1).and.(i.eq.790).and.(j.eq.500) ) then
-!                write(*,*)'extracting NO3 at i,j=790,500, t(nstp)=',t(i,j,k,nstp,indx)
-!                write(*,*)'extracting NO3 at i,j=790,500, t(nnew)=',t(i,j,k,nnew,indx)
-!                write(*,*)' Bio(i,k,_iNO3) =',Bio(i,k,indx)
-!                write(*,*)'rmask(i,j)=',rmask(i,j)
-!            endif
-!             if( k.eq.1.and.indx.eq.iNO3_ ) then
+!             if( k.eq.15.and.indx.eq.iNO3_ ) then
 !                inan=isnan(t(i,j,k,nnew,indx))
-!                if( inan ) then
-!                    write(*,*)'t(i,j,1,nnew,iNO3_)=NaN at i=',i,'j=',j
+!                if( inan.and. rmask(i,j).eq.1.0_r8 ) then
+!                    write(*,*)'t(i,j,15,nnew,iNO3_)=NaN at i=',i,'j=',j
 !                endif
 !                inan=isnan(t(i,j,k,nstp,indx))
-!                if( inan ) then
-!                    write(*,*)'t(i,j,1,nstp,iNO3_)=NaN at i=',i,'j=',j
+!                if( inan.and. rmask(i,j).eq.1.0_r8 ) then
+!                    write(*,*)'t(i,j,15,nstp,iNO3_)=NaN at i=',i,'j=',j
+!                endif
+!                if( j.eq.1.and.i.eq.7 ) then
+!                    write(*,*)'before bio: t(7,1,15,nstp,3)=',t(7,1,15,nstp,3)
+!                    write(*,*)'before bio: t(7,1,15,nnew,3)=',t(7,1,15,nnew,3)
 !                endif
 !             endif
             END DO
@@ -598,7 +583,7 @@
 !            Bio(i,k,isalt)=t(i,j,k,nstp,isalt)
             Bio(i,k,itemp)=t(i,j,k,nstp,itemp)
 #ifdef CARBON
-          Bio(i,k,iTIC_)=MAX(t(i,j,k,nstp,iTIC_), 1800.0_r8)
+!          Bio(i,k,iTIC_)=MAX(t(i,j,k,nstp,iTIC_), 1800.0_r8)
 #endif
           
           END DO
@@ -638,6 +623,7 @@
 !
 #ifdef OPTICS_OP1
       if( mod(time(ng),dt_optics).lt.0.000001_r8) then
+    
         call optic_property(Istr, Iend, ng,                               &
      &                       LBi, UBi, LBj, UBj, UBk,                   &
      &                       IminS, ImaxS, j,                           &
@@ -670,16 +656,9 @@
       PIO(i,N(ng)+1)=PARsur(i)
       IF (PIO(i,N(ng)+1) .lt. 0.0_r8) PIO(i,N(ng)+1)=0.0_r8
       DO k=N(ng),1,-1
-!         if(kdpar(i,k).ge.0.001_r8.and.kdpar(i,k).le.10.0_r8)then
-!             cff1=kdpar(i,k)*HZ(i,j,k)
-!        else
-!
-!!       cff1=(AK1(ng)+(Bio(i,k,iSphy)+Bio(i,k,iLphy))*AK2(ng))*HZ(i,j,k)
-!       cff1=(AK1(ng)+(Bio(i,k,iChl1)+Bio(i,k,iChl2))*AK2(ng))*HZ(i,j,k)
-!       endif
+
 #ifdef OPTICS_OP1
         cff1=kdpar(i,j,k)*HZ(i,j,k)
-!        cff1=kd(i,k)*HZ(i,j,k)
 #else
         cff1=(AK1(ng)+(Bio(i,k,iChl1)+Bio(i,k,iChl2))*AK2(ng))*HZ(i,j,k)
 #endif
@@ -835,7 +814,7 @@
     gno3s2  = gmaxs2(ng)*uno3s2
     gnh4s2  = gmaxs2(ng)*unh4s2
     gsio4s2 = gmaxs2(ng)*usio4s2
-                        
+ 
 !     -------------------------------------------------------
 !     CALCULATING THE NEW,REGENERATED,AND PRIMARY PRODUCTION 
 !     -------------------------------------------------------
@@ -1168,12 +1147,6 @@
         &              (nps1+nps2)*dtdays
 # endif
 
-        if( (k.eq.1).and.(i.eq.500).and.(j.eq.790) ) then
-            write(*,*)'sms1 at i,j=500,790 =',sms1
-        endif
-        if( (k.eq.1).and.(i.eq.790).and.(j.eq.500) ) then
-            write(*,*)'sms1 at i,j=790,500, =',sms1
-        endif
 ! update values 
       
         Bio(i,k,iNO3_)=Bio(i,k,iNO3_)+dtdays*sms1
@@ -1186,10 +1159,6 @@
         Bio(i,k,iSDet)=Bio(i,k,iSDet)+dtdays*sms8
         Bio(i,k,iopal)=Bio(i,k,iopal)+dtdays*sms9
         Bio(i,k,iPO4_)=Bio(i,k,iPO4_)+dtdays*sms10
-
-!        if( (j.eq.690.and.i.eq.535) ) THEN
-!          write(*,*)'k=',k,'Sphy=',Bio(i,k,iSphy),'Lphy=',Bio(i,k,iLphy)
-!        endif
 
 #ifdef OXYGEN
         Bio(i,k,iOxyg)=Bio(i,k,iOxyg)+dtdays*sms11
@@ -1292,6 +1261,11 @@
 !-----------------------------------------------------------------------
 !
       k=N(ng)
+!      DO i=Istr,Iend
+!        if( Bio(i,k,iTIC_).gt.5000_r8 ) Then
+!            write(*,*)'Before CO2_flux, i=',i,'Bio(i,k,iTIC_)=',Bio(i,k,iTIC_)
+!        endif
+!      END DO
       CALL CO2_flux (Istr, Iend, LBi, UBi, LBj, UBj,                   &
      &                     IminS, ImaxS, j,                            &
 #ifdef MASKING
@@ -1303,6 +1277,12 @@
      &                     kw660, 1.0_r8,pco2a(ng), co2flx,pco2s)
       DO i=Istr,Iend
         Bio(i,k,iTIC_)=Bio(i,k,iTIC_)+dtdays*co2flx(i)*Hz_inv(i,k)
+!        if( Bio(i,k,iTIC_).gt.5000_r8 ) Then
+!           write(*,*)'i=',i,'k=',k,'Bio(i,k,iTIC_)=',Bio(i,k,iTIC_),   &
+!     &     'T=',Bio(i,k,itemp),'S=',Bio(i,k,isalt),'TAlk=',Bio(i,k,iTAlk)
+!           write(*,*)'  PO4=',Bio(i,k,iPO4_),'SiOH=',Bio(i,k,iSiOH)
+!           write(*,*)'   kw660=',kw660(i),'co2flx=',co2flx(i)
+!        endif
 	  
 # ifdef DIAGNOSTICS_BIO
             DiaBio2d(i,j,iCOfx)=DiaBio2d(i,j,iCOfx)+                   &
@@ -1640,11 +1620,7 @@
 !     &            (Bio(i,k,indx)-Bio_bak(i,k,indx))*  Hz(i,j,k),0.00001_r8)
               t(i,j,k,nnew,indx)=t(i,j,k,nnew,indx)+                   &
      &            (Bio(i,k,indx)-Bio_bak(i,k,indx))*  Hz(i,j,k)
-!            if( (indx.eq.iNO3_).and.(k.eq.1).and.(i.eq.500).and.(j.eq.790) ) then
-!                write(*,*)'post-bio, time =',time(ng),'tile =',tile
-!                write(*,*)'post-bio NO3 i,j=500,790, t(nstp)=',t(i,j,k,nstp,indx)
-!                write(*,*)'post-bio NO3 i,j=500,790, t(nnew)=',t(i,j,k,nnew,indx)
-!            endif
+
             END DO
           END DO
         END DO

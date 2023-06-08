@@ -212,6 +212,7 @@
           IF (k.lt.N(ng)) THEN
             DO j=Jstr,Jend
               DO i=Istr,Iend+1
+
                 cff=0.5_r8*(pm(i,j)+pm(i-1,j))
 #ifdef MASKING
                 cff=cff*umask(i,j)
@@ -385,6 +386,7 @@
                 DiaTwrk(i,j,k,itrc,iTsdif)=cff3
                 DiaTwrk(i,j,k,itrc,iThdif)=cff4
 #endif
+
               END DO
             END DO
           END IF

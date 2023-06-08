@@ -766,7 +766,8 @@
       END DO
       DO itrc=1,NPWC
         IF (.not.have_var(idbPW(itrc)).and.                            &
-     &      get_var(idbPM(itrc))) THEN
+!    &      get_var(idbPM(itrc))) THEN
+     &      get_var(idbPW(itrc))) THEN
           IF (Master) WRITE (stdout,10) string,                         &
      &                                  TRIM(Vname(1,idbPW(itrc))),    &
      &                                  TRIM(ncname)

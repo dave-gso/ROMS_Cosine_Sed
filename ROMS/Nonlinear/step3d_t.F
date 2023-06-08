@@ -279,14 +279,6 @@
 # endif
 
 # include "set_bounds.h"
-      if( LBi.le.500.and.UBi.ge.500.and.LBj.le.790.and.UBj.ge.790     &
-     &     .and.(tile.eq.91.or.tile.eq.92) ) then
-        write(*,*)' step3d_t: time=',time(ng)
-        write(*,*)' step3d_t: tile =',tile
-        write(*,*)' step3d_t: t(500,790,1,nrhs,3)=',t(500,790,1,nrhs,3)
-        write(*,*)' step3d_t: t(500,790,1,nstp,3)=',t(500,790,1,nstp,3)
-        write(*,*)' step3d_t: t(500,790,1,nnew,3)=',t(500,790,1,nnew,3)
-      endif
 
 # ifdef NESTING
 !
@@ -347,14 +339,6 @@
 !
 !  Compute horizontal tracer advection fluxes.
 !
-        if( LBi.le.500.and.UBi.ge.500.and.LBj.le.790.and.UBj.ge.790     &
-     &    .and.(tile.eq.91.or.tile.eq.92) ) then
-            write(*,*)'before h-adv, step3d_t: time =',time(ng)
-            write(*,*)'before h-adv, step3d_t: tile =',tile
-            write(*,*)'before h-adv, step3d_t: t(500,790,1,nrhs,3)=',t(500,790,1,nrhs,3)
-            write(*,*)'before h-adv, step3d_t: t(500,790,1,nstp,3)=',t(500,790,1,nstp,3)
-            write(*,*)'before h-adv, step3d_t: t(500,790,1,nnew,3)=',t(500,790,1,nnew,3)
-        endif
       T_LOOP : DO itrc=1,NT(ng)
         K_LOOP : DO k=1,N(ng)
 
@@ -364,6 +348,7 @@
 !
           DO j=Jstr,Jend
             DO i=Istr,Iend+1
+
               FX(i,j)=Huon(i,j,k)*                                      &
      &                0.5_r8*(t(i-1,j,k,3,itrc)+                        &
      &                        t(i  ,j,k,3,itrc))
@@ -634,12 +619,7 @@
               cff1=cff*(FX(i+1,j)-FX(i,j))
               cff2=cff*(FE(i,j+1)-FE(i,j))
               cff3=cff1+cff2
-            if( itrc.eq.3.and.k.eq.1                                   &
-     &      .and.(tile.eq.91.or.tile.eq.92).and.i.eq.500.and.j.eq.790 ) then
-                write(*,*)'in h-adv, step3d_t: time =',time(ng)
-                write(*,*)'in h-adv, step3d_t: tile =',tile
-                write(*,*)'cff1=',cff1,'cff2=',cff2,'cff3=',cff3
-            endif
+
 # ifdef TS_MPDATA
               Ta(i,j,k,itrc)=t(i,j,k,nnew,itrc)-cff3
 # else
@@ -674,15 +654,9 @@
 !  Time-step vertical advection term.
 !-----------------------------------------------------------------------
 !
-        if( LBi.le.500.and.UBi.ge.500.and.LBj.le.790.and.UBj.ge.790           &
-     &      .and.(tile.eq.91.or.tile.eq.92) ) then
-            write(*,*)'before v-adv, step3d_t: time =',time(ng)
-            write(*,*)'before v-adv, step3d_t: tile =',tile
-            write(*,*)'before v-adv, step3d_t: t(500,790,1,nrhs,3)=',t(500,790,1,nrhs,3)
-            write(*,*)'before v-adv, step3d_t: t(500,790,1,nstp,3)=',t(500,790,1,nstp,3)
-            write(*,*)'before v-adv, step3d_t: t(500,790,1,nnew,3)=',t(500,790,1,nnew,3)
-        endif
+
       DO j=J_RANGE
+
         DO itrc=1,NT(ng)
 
 # if defined TS_SVADVECTION
@@ -1027,13 +1001,6 @@
       DO j=Jstr,Jend
 # endif /* TS_MPDATA */
 
-        if( LBi.le.500.and.UBi.ge.500.and.LBj.le.790.and.UBj.ge.790             &
-     &      .and.(tile.eq.91.or.tile.eq.92).and.j.eq.790 ) then
-            write(*,*)'before v-diff, step3d_t: tile =',tile,'time =',time
-            write(*,*)'before v-diff, step3d_t: t(500,790,1,nrhs,3)=',t(500,790,1,nrhs,3)
-            write(*,*)'before v-diff, step3d_t: t(500,790,1,nstp,3)=',t(500,790,1,nstp,3)
-            write(*,*)'before v-diff, step3d_t: t(500,790,1,nnew,3)=',t(500,790,1,nnew,3)
-        endif
 !
 !-----------------------------------------------------------------------
 !  Time-step vertical diffusion term.
@@ -1259,24 +1226,11 @@
 !
 !  Apply Land/Sea mask.
 !
-        if( itrc.eq.3.and.LBi.le.500.and.UBi.ge.500.and.LBj.le.790      &
-     &     .and.UBj.ge.790.and.(tile.ge.91.and.tile.le.92) ) then
-            write(*,*)'before masking, step3d_t: tile =',tile
-            write(*,*)'before masking, step3d_t: time =',time(ng)
-            write(*,*)'before masking, step3d_t: t(500,790,1,nrhs,3)=',t(500,790,1,nrhs,3)
-            write(*,*)'before masking, step3d_t: t(500,790,1,nstp,3)=',t(500,790,1,nstp,3)
-            write(*,*)'before masking, step3d_t: t(500,790,1,nnew,3)=',t(500,790,1,nnew,3)
-            write(*,*)'before masking, step3d_t: rmask(500,790)=',rmask(500,790)
-        endif
 
         DO k=1,N(ng)
           DO j=JstrR,JendR
             DO i=IstrR,IendR
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)*rmask(i,j)
-        if( itrc.eq.3.and.i.eq.500.and.j.eq.790.and.k.eq.1            &
-     &     .and.(tile.ge.91.and.tile.le.92) ) then
-        write(*,*)'just after masking, step3d_t: t(500,790,1,nnew,3)=',t(500,790,1,nnew,3)
-        endif
             END DO
           END DO
         END DO
@@ -1346,15 +1300,6 @@
      &                    dAktdz)
 #  endif
 # endif
-
-        if( LBi.le.500.and.UBi.ge.500.and.LBj.le.790.and.UBj.ge.790    &
-     &      .and.(tile.eq.91.or.tile.eq.92) ) then
-            write(*,*)'post-step3d_t: time =',time(ng)
-            write(*,*)'post-step3d_t: tile =',tile
-            write(*,*)'post-step3d_t: t(500,790,1,nrhs,3)=',t(500,790,1,nrhs,3)
-            write(*,*)'post-step3d_t: t(500,790,1,nstp,3)=',t(500,790,1,nstp,3)
-            write(*,*)'post-step3d_t: t(500,790,1,nnew,3)=',t(500,790,1,nnew,3)
-        endif
 
       RETURN
       END SUBROUTINE step3d_t_tile

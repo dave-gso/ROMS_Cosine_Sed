@@ -96,6 +96,10 @@
       integer :: IorJ, LBij, UBij
 #endif
       integer :: IDmod, InpRec, gtype, i, ifield, itrc, lstr, lend
+#ifdef OPTICS_OP1
+      integer :: j, k
+      real(r8), parameter :: kdIniVal = 0.05_r8
+#endif
       integer :: Nrec, mySize, ncINPid, nvatts, nvdim, status, varid
       integer :: Vsize(4), start(4), total(4)
 
@@ -195,7 +199,7 @@
       UBi=UBOUND(GRID(ng)%h,DIM=1)
       LBj=LBOUND(GRID(ng)%h,DIM=2)
       UBj=UBOUND(GRID(ng)%h,DIM=2)
-!        write(*,*)'GET_STATE: LBi=',LBi,'UBi=',UBi,'LBj=',LBj,'UBj=',UBj
+
 !
 !  Open input NetCDF file.
 !
@@ -831,17 +835,6 @@
      &                          TRIM(Vname(1,idTvar(itrc))), varid)
             gtype=var_flag(varid)*r3dvar
 
-!           if( itrc.eq.2 ) then
-!            write(*,*)'get_state: reading variable, itrc=2'
-!            write(*,*)'get_state: Vname=',Vname(1,idTvar(itrc))
-!            write(*,*)'get_state: varid=',varid
-!            write(*,*)'get_state: InpRec=',InpRec
-!            write(*,*)'get_state: gtype=',gtype
-!            write(*,*)'get_state: Vsize=',Vsize
-!            write(*,*)'get_state: LBi=',LBi,'UBi=',UBi,'LBj=',LBj,'UBj=',UBj
-!            write(*,*)'get_state: N(ng)=',N(ng)
-!            endif
-
             IF (Perfect3D) THEN
               status=nf_fread4d(ng, IDmod, ncname, ncINPid,             &
      &                          Vname(1,idTvar(itrc)), varid,           &
@@ -1451,7 +1444,6 @@
             foundit=find_string(var_name, n_var,                        &
      &                          TRIM(Vname(1,idbPM(i))), varid)
             gtype=var_flag(varid)*bs3dvar
-!            write(stdout,*)'Variable Name =',Vname(1,idbPM(i))
             status=nf_fread3d(ng, IDmod, ncname, ncINPid,               &
      &                        Vname(1,idbPM(i)), varid,                &
      &                        InpRec, gtype, Vsize,                     &
@@ -1484,7 +1476,6 @@
             foundit=find_string(var_name, n_var,                        &
      &                          TRIM(Vname(1,idbDR(i))), varid)
             gtype=var_flag(varid)*bs3dvar
-!            write(stdout,*)'Variable Name =',Vname(1,idbDR(i))
             status=nf_fread3d(ng, IDmod, ncname, ncINPid,               &
      &                        Vname(1,idbDR(i)), varid,                &
      &                        InpRec, gtype, Vsize,                     &
@@ -1517,7 +1508,6 @@
             foundit=find_string(var_name, n_var,                        &
      &                          TRIM(Vname(1,idbPW(i))), varid)
             gtype=var_flag(varid)*r2dvar
-!            write(stdout,*)'Variable Name =',Vname(1,idbPW(i))
             status=nf_fread2d(ng, IDmod, ncname, ncINPid,               &
      &                        Vname(1,idbPW(i)), varid,                &
      &                        InpRec, gtype, Vsize,                     &
@@ -1550,7 +1540,6 @@
             foundit=find_string(var_name, n_var,                        &
      &                          TRIM(Vname(1,idbSF(i))), varid)
             gtype=var_flag(varid)*r2dvar
-!            write(stdout,*)'Variable Name =',Vname(1,idbSF(i))
             status=nf_fread2d(ng, IDmod, ncname, ncINPid,               &
      &                        Vname(1,idbSF(i)), varid,                &
      &                        InpRec, gtype, Vsize,                     &
@@ -1584,14 +1573,6 @@
             foundit=find_string(var_name, n_var,                        &
      &                          TRIM(Vname(1,idkdPAR)), varid)
             gtype=var_flag(varid)*r3dvar
-!        write(*,*)'get_state: reading kdPAR'
-!        write(*,*)'get_state: Vname=',Vname(1,idkdPAR)
-!        write(*,*)'get_state: varid=',varid
-!        write(*,*)'get_state: InpRec=',InpRec
-!        write(*,*)'get_state: gtype=',gtype
-!        write(*,*)'get_state: Vsize=',Vsize
-!        write(*,*)'get_state: LBi=',LBi,'UBi=',UBi,'LBj=',LBj,'UBj=',UBj
-!        write(*,*)'get_state: N(ng)=',N(ng)
             status=nf_fread3d(ng, IDmod, ncname, ncINPid,               &
      &                        Vname(1,idkdPAR), varid,                  &
      &                        InpRec, gtype, Vsize,                     &
@@ -1610,6 +1591,18 @@
               ioerror=status
               RETURN
             ELSE
+#    ifdef MASKING
+!   set kdPAR for land points to ini value
+              do j=LBj,UBj
+                do i=LBi,UBi
+                    if( GRID(ng)%rmask(i,j).lt.0.5_r8 ) THEN
+                      do k=1,N(ng)
+                        OCEAN(ng)%kdPAR(i,j,k)=kdIniVal
+                      end do
+                    end if
+                end do
+              end do
+#    endif
               IF (Master) THEN
                 WRITE (stdout,70) TRIM(Vname(2,idkdPAR)), Fmin, Fmax
               END IF
