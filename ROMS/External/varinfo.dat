@@ -7171,3 +7171,94 @@
   'r3dvar'
   1.0d0
 
+! HAB variables
+
+'habphytoplankton'                                           ! Input/Output
+  'hab phytoplankton biomass'
+  'millimole_nitrogen meter-3'                     ! [millimole/m3]
+  'habphytoplankton, scalar, series'
+  'ocean_time'
+  'idTvar(iHphy)'
+  'r3dvar'
+  1.0d0
+
+'chlorophyll3'                                      ! Input/Output
+  'chlorophyll concentration for habphytoplankton'
+  'milligrams_chlorophyll meter-3'                 ! [milligrams/m3]
+  'chlorophyll3, scalar, series'
+  'ocean_time'
+  'idTvar(iChl3)'
+  'r3dvar'
+  1.0d0
+
+habphytoplankton_east'                                      ! Input
+  'habphytoplankton eastern boundary condition'
+  'millimole_nitrogen meter-3'                     ! [millimole/m3]
+  'habphytoplankton_east, scalar, series'
+  'habphytoplankton_time'
+  'idTbry(ieast,iHphy)'
+  'nulvar'
+  1.0d0
+
+'habphytoplankton_west'                                      ! Input
+  'habphytoplankton western boundary condition'
+  'millimole_nitrogen meter-3'                     ! [millimole/m3]
+  'habphytoplankton_west, scalar, series'
+  'habphytoplankton_time'
+  'idTbry(iwest,iHphy)'
+  'nulvar'
+  1.0d0
+
+'habphytoplankton_south'                                     ! Input
+  'habphytoplankton southern boundary condition'
+  'millimole_nitrogen meter-3'                     ! [millimole/m3]
+  'habphytoplankton_south, scalar, series'
+  'habphytoplankton_time'
+  'idTbry(isouth,iHphy)'
+  'nulvar'
+  1.0d0
+
+'habphytoplankton_north'                                     ! Input
+  'habphytoplankton northern boundary condition'
+  'millimole_nitrogen meter-3'                     ! [millimole/m3]
+  'habphytoplankton_north, scalar, series'
+  'habphytoplankton_time'
+  'idTbry(inorth,iHphy)'
+  'nulvar'
+  1.0d0
+
+chlorophyll3_east'                                      ! Input
+  'chlorophyll3 eastern boundary condition'
+  'millimole_nitrogen meter-3'                     ! [millimole/m3]
+  'chlorophyll3_east, scalar, series'
+  'chlorophyll3_time'
+  'idTbry(ieast,iChl3)'
+  'nulvar'
+  1.0d0
+
+'chlorophyll3_west'                                      ! Input
+  'chlorophyll3 western boundary condition'
+  'millimole_nitrogen meter-3'                     ! [millimole/m3]
+  'chlorophyll3_west, scalar, series'
+  'chlorophyll3_time'
+  'idTbry(iwest,iChl3)'
+  'nulvar'
+  1.0d0
+
+'chlorophyll3_south'                                     ! Input
+  'chlorophyll3 southern boundary condition'
+  'millimole_nitrogen meter-3'                     ! [millimole/m3]
+  'chlorophyll3_south, scalar, series'
+  'chlorophyll3_time'
+  'idTbry(isouth,iChl3)'
+  'nulvar'
+  1.0d0
+
+'chlorophyll3_north'                                     ! Input
+  'chlorophyll3 northern boundary condition'
+  'millimole_nitrogen meter-3'                     ! [millimole/m3]
+  'chlorophyll3_north, scalar, series'
+  'chlorophyll3_time'
+  'idTbry(inorth,iChl3)'
+  'nulvar'
+  1.0d0
