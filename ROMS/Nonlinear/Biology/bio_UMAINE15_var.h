@@ -341,6 +341,10 @@
                 idbPW(ibPO4)=varid
             CASE ('idbPW(ibSi)')
                 idbPW(ibSi)=varid
+            CASE ('idbPW(ibTIC)')
+                idbPW(ibTIC)=varid
+            CASE ('idbPW(ibAlk)')
+                idbPW(ibAlk)=varid
         ! Benthic particulate matter decay rates
             CASE ('idbDR(ibUC)')
                 idbDR(ibUC)=varid
@@ -361,4 +365,8 @@
                 idbSF(ibJSi)=varid
             CASE ('idbSF(ibSOD)')
                 idbSF(ibSOD)=varid
+            CASE ('idbSF(ibJTIC)')
+                idbSF(ibJTIC)=varid
+            CASE ('idbSF(ibJAlk)')
+                idbSF(ibJAlk)=varid
 #endif

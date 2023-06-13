@@ -30,10 +30,13 @@
       integer :: decode_line, load_i, load_l, load_r,load_lbc
 
       logical, dimension(Ngrids) :: Lbio
-!      logical, dimension(nspc,Ngrids) :: Ltrc
-!      real(r8), dimension(nspc,Ngrids) :: Rbio
-      logical, dimension(5,Ngrids) :: Ltrc
-      real(r8), dimension(5,Ngrids) :: Rbio
+
+! Changed dimensions of Ltrc from 5 to NSF since NSF is 7 and larger than 5 (number of sediment fluxes)
+! The robust way to do this would be to have the dimension be the largest of NSF, NPWC, NPOM, N-decay rate
+! AKB 5/18/23
+!
+      logical, dimension(NSF,Ngrids) :: Ltrc
+      real(r8), dimension(NSF,Ngrids) :: Rbio
       real(r8), dimension(100) :: Rval
       
       character (len=40 ) :: KeyWord

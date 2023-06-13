@@ -467,6 +467,7 @@
           END IF
         END DO
 # endif
+
 # ifdef OPTICS_OP1
         IF (TRIM(var_name(i)).eq.TRIM(Vname(1,idkdPAR))) THEN
             have_var(idkdPAR)=.TRUE.
@@ -766,7 +767,6 @@
       END DO
       DO itrc=1,NPWC
         IF (.not.have_var(idbPW(itrc)).and.                            &
-!    &      get_var(idbPM(itrc))) THEN
      &      get_var(idbPW(itrc))) THEN
           IF (Master) WRITE (stdout,10) string,                         &
      &                                  TRIM(Vname(1,idbPW(itrc))),    &

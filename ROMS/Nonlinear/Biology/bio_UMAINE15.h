@@ -312,6 +312,8 @@
 #ifdef OPTICS_OP1
       real(r8), dimension(LBi:UBi,N(ng)) :: kd
 #endif
+! AKB Added new SEDBIO arguments on 3/20/23--------------------------
+
 #ifdef SEDBIO
       real(r8), dimension(LBi:UBi,LBj:UBj,nspc) :: bPOC
       real(r8), dimension(LBi:UBi,LBj:UBj,nspc) :: bPON
@@ -321,6 +323,12 @@
       real(r8), dimension(LBi:UBi,LBj:UBj) :: bNH4
       real(r8), dimension(LBi:UBi,LBj:UBj) :: bPO4
       real(r8), dimension(LBi:UBi,LBj:UBj) :: bSi
+#ifdef CARBON
+      real(r8), dimension(LBi:UBi,LBj:UBj) :: bTIC
+#ifdef TALK_NONCONSERV
+      real(r8), dimension(LBi:UBi,LBj:UBj) :: bAlk
+#endif
+#endif
       real(r8), dimension(LBi:UBi,LBj:UBj,nspc) :: bUC
       real(r8), dimension(LBi:UBi,LBj:UBj,nspc) :: bUN
       real(r8), dimension(LBi:UBi,LBj:UBj,nspc) :: bUP
@@ -330,7 +338,14 @@
       real(r8), dimension(LBi:UBi,LBj:UBj) :: JPO4
       real(r8), dimension(LBi:UBi,LBj:UBj) :: JSi
       real(r8), dimension(LBi:UBi,LBj:UBj) :: SOD
+#ifdef CARBON
+      real(r8), dimension(LBi:UBi,LBj:UBj) :: JTIC
+#ifdef TALK_NONCONSERV
+      real(r8), dimension(LBi:UBi,LBj:UBj) :: JAlk
 #endif
+#endif
+#endif
+! AKB Added new SEDBIO arguments on 3/20/23--------------------------
 
       real(r8), dimension(LBi:UBi,N(ng)) :: Hz_inv
       real(r8), dimension(LBi:UBi,N(ng)) :: Hz_inv2
@@ -453,29 +468,45 @@
       Wbio(4)=0.0_r8                ! iSphy
       Wbio(5)=0.0_r8                ! iSphy ichl1
       Wbio(6)=wsp(ng)                ! iLphy ichl2
+
 #ifdef SEDBIO
 !  Extract sediment biology variables from full arrays
       DO j=Jstr,Jend
         DO i=Istr,Iend
-          DO k=1,nspc
-            bPOC(i,j,k)=sedPOM(i,j,k,ibPOC)
-            bPON(i,j,k)=sedPOM(i,j,k,ibPON)
-            bPOP(i,j,k)=sedPOM(i,j,k,ibPOP)
-            bPSi(i,j,k)=sedPOM(i,j,k,ibPSi)
-            bUC(i,j,k)=sedDecayRate(i,j,k,ibUC)
-            bUN(i,j,k)=sedDecayRate(i,j,k,ibUN)
-            bUP(i,j,k)=sedDecayRate(i,j,k,ibUP)
-            bUS(i,j,k)=sedDecayRate(i,j,k,ibUS)
+          DO k=1,nspc                           ! nspc = 3: number of sed particulate classes
+            bPOC(i,j,k)=sedPOM(i,j,k,ibPOC)     ! NPOM = ibPOC = 1: benthic POC conc
+            bPON(i,j,k)=sedPOM(i,j,k,ibPON)     ! NPOM = ibPON = 2: benthic PON conc
+            bPOP(i,j,k)=sedPOM(i,j,k,ibPOP)     ! NPOM = ibPOP = 3: benthic POP conc
+            bPSi(i,j,k)=sedPOM(i,j,k,ibPSi)     ! NPOM = ibPSi = 4: benthic Si conc
+
+            bUC(i,j,k)=sedDecayRate(i,j,k,ibUC) ! NDR = ibUC = 1: decay rate of POC
+            bUN(i,j,k)=sedDecayRate(i,j,k,ibUN) ! NDR = ibUN = 2: decay rate PON
+            bUP(i,j,k)=sedDecayRate(i,j,k,ibUP) ! NDR = ibUP = 3: decay rate POP
+            bUS(i,j,k)=sedDecayRate(i,j,k,ibUS) ! NDR = ibUS = 4: decay rate PSi
           END DO
-          bNO3(i,j)=sedPoreWaterCon(i,j,ibNO3)
-          bNH4(i,j)=sedPoreWaterCon(i,j,ibNH4)
-          bPO4(i,j)=sedPoreWaterCon(i,j,ibPO4)
-          bSi(i,j)=sedPoreWaterCon(i,j,ibSi)
-          JNO3(i,j)=sedFlux(i,j,ibJNO3)
-          JNH4(i,j)=sedFlux(i,j,ibJNH4)
-          JPO4(i,j)=sedFlux(i,j,ibJPO4)
-          JSi(i,j)=sedFlux(i,j,ibJSi)
-          SOD(i,j)=sedFlux(i,j,ibSOD)
+
+          bNO3(i,j)=sedPoreWaterCon(i,j,ibNO3)      ! NPWC = ibNO3 = 1
+          bNH4(i,j)=sedPoreWaterCon(i,j,ibNH4)      ! NPWC = ibNH4 = 2
+          bPO4(i,j)=sedPoreWaterCon(i,j,ibPO4)      ! NPWC = ibPO4 = 3
+          bSi(i,j)=sedPoreWaterCon(i,j,ibSi)        ! NPWC = ibSi = 4
+#ifdef CARBON
+          bTIC(i,j)=sedPoreWaterCon(i,j,ibTIC)      ! NPWC = ibTIC = 5
+#ifdef TALK_NONCONSERV
+          bAlk(i,j)=sedPoreWaterCon(i,j,ibAlk)      ! NPWC = ibAlk = 6
+#endif
+#endif
+
+          JNO3(i,j)=sedFlux(i,j,ibJNO3)         ! NSF = ibJNO3 = 1: benthic flux of NO3
+          JNH4(i,j)=sedFlux(i,j,ibJNH4)         ! NSF = ibJNH4 = 2: benthic flux of NH4
+          JPO4(i,j)=sedFlux(i,j,ibJPO4)         ! NSF = ibJPO4 = 3: benthic flux of PO4
+          JSi(i,j)=sedFlux(i,j,ibJSi)           ! NSF = ibJSi  = 4: benthic flux of Si
+          SOD(i,j)=sedFlux(i,j,ibSOD)           ! NSF = ibSOD  = 5: benthic oxygen demand
+#ifdef CARBON
+          JTIC(i,j)=sedFlux(i,j,ibJTIC)         ! NSF = ibJTIC = 6: benthic flux of TIC
+#ifdef TALK_NONCONSERV
+          JAlk(i,j)=sedFlux(i,j,ibJAlk)         ! NSF - ibJAlk = 7: benthic flux of alkalinity
+#endif
+#endif
         END DO
       END DO
 #endif
@@ -1537,10 +1568,50 @@
      &                      bUC(LBi:,j,:), bUN(LBi:,j,:),              &
      &                      bUP(LBi:,j,:), bUS(LBi:,j,:),              &
      &                      JNO3(LBi:,j), JNH4(LBi:,j),                &
-     &                      JPO4(LBi:,j), JSi(LBi:,j), SOD(LBi:,j))
+     &                      JPO4(LBi:,j), JSi(LBi:,j), SOD(LBi:,j),    &    
+#   ifdef CARBON
+    &                      Bio(LBi:,1,iTIC_), bTIC(LBi:,j),            &    
+    &                      JTIC(LBi:,j),                               &    
+#   ifdef TALK_NONCONSERV
+    &                      Bio(LBi:,1,iTAlk), bAlk(LBi:,j),            &    
+    &                      JAlk(LBi:,j))
+#   endif
+#   endif
+
+
+! WRITTEN IN SEDIMENT_BIOLOGY.F AS FOLLOWS-------------------------------
+! SUBROUTINE sediment_bio(ng, Istr, Iend, LBi, UBi,                &    
+! &                      dtdays,                                   &    
+!#   ifdef MASKING
+!     &                      rmask,                                     &    
+!#   endif
+!     &                      temp, DOX, dNO3, dNH4, dPO4, dSiO4,        &    
+!     &                      FPOC, FPON, FPOP, FPSi,                    &    
+!     &                      bPOC, bPON, bPOP, bPSi,                    &    
+!     &                      bNO3, bNH4, bPO4, bSi,                     &    
+!     &                      bUC, bUN, bUP, bUS,                        &    
+!     &                      JNO3, JNH4, JPO4, JSi, SOD,                &    
+!#ifdef CARBON
+!     &                      dTIC, bTIC, JTIC,                          &    
+!#ifdef TALK_NONCONSERV
+!     &                      dAlk, bAlk, JAlk)
+!#endif
+!#endif
+! -----------------------------------------------------------------------
+! ORDER OF ARGUMENTS:           temp, oxygen, dNO3, dNH4, dPO4, dSiO4, FPOC, FPON,
+!                               FPOP, FPSi, bPOC, bPON, bPOP, bPSi, bNO3, bNH4,
+!                               bPO4, bSi, bUC, bUN, bUP, bUS, JNO3, JNH4, JPO4 
+!                               JSi, SOD
+! ADDED ARGUMENTS (3/20/23):    dTIC, bTIC, JTIC, dAlk, bAlk, JAlK
+ 
 !
 ! update near-bottom concentrations in response to fluxes
 !
+! Near bottom variables: iOxyg, iNO3_, iNH4_, iPO4_, iSiOh, iTIC_, iTAlk
+!                        where k = 1 for bottom sigma level
+! Form: [conc]_new = [conc]_old + dt * flux / H_sed
+! Negative for SOD since SOD is a comsumption term
+
         k=1
         DO i=Istr,Iend
             Bio(i,k,iOxyg)=Bio(i,k,iOxyg)-dtdays*SOD(i,j)*Hz_inv(i,k)
@@ -1548,6 +1619,9 @@
             Bio(i,k,iNH4_)=Bio(i,k,iNH4_)+dtdays*JNH4(i,j)*Hz_inv(i,k)
             Bio(i,k,iPO4_)=Bio(i,k,iPO4_)+dtdays*JPO4(i,j)*Hz_inv(i,k)
             Bio(i,k,iSiOH)=Bio(i,k,iSiOH)+dtdays*JSi(i,j)*Hz_inv(i,k)
+            ! TIC and Alk added on 2/28/23 by A. Baskind
+            Bio(i,k,iTIC_)=Bio(i,k,iTIC_)+dtdays*JTIC(i,j)*Hz_inv(i,k)
+            Bio(i,k,iTAlk)=Bio(i,k,iTAlk)+dtdays*JAlk(i,j)*Hz_inv(i,k)
         END DO
 # else
 ! for non sediment bio case, estimate sediment oxygen consumption as !
@@ -1651,6 +1725,14 @@
             sedFlux(i,j,ibJPO4)=JPO4(i,j)
             sedFlux(i,j,ibJSi)=JSi(i,j)
             sedFlux(i,j,ibSOD)=SOD(i,j)
+#ifdef CARBON
+            sedPoreWaterCon(i,j,ibTIC)=bTIC(i,j)    ! Added 2/28/23 by A.Baskind
+            sedFlux(i,j,ibJTIC)=JTIC(i,j)           ! Added 2/28/23 by A.Baskind
+#ifdef TALK_NONCONSERV
+            sedPoreWaterCon(i,j,ibAlk)=bAlk(i,j)    ! Added 2/28/23 by A.Baskind
+            sedFlux(i,j,ibJAlk)=JAlk(i,j)           ! Added 2/28/23 by A.Baskind
+#endif
+#endif
         END DO
       END DO
 #endif

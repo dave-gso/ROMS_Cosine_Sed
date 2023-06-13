@@ -7116,6 +7116,24 @@
   'r2dvar'
   1.0d0
 
+'porewater_TIC'                                    ! Input/Output
+  'concentration of total inorganic carbon in sediment pore water'
+  'mmol/meter-3'                                          ! [mmol/m^3]
+  'porewater TIC, scalar, series'
+  'ocean_time'
+  'idbPW(ibTIC)'
+  'r2dvar'
+  1.0d0
+
+'porewater_Alk'                                    ! Input/Output
+  'concentration of total alkalinity in sediment pore water'
+  'mmol/meter-3'                                          ! [mmol/m^3]
+  'porewater Alk, scalar, series'
+  'ocean_time'
+  'idbPW(ibAlk)'
+  'r2dvar'
+  1.0d0
+
 'benthic_flux_NO3'                                    ! Input/Output
   'flux of NO3 between sediment and water column'
   'mmol/meter-2/day'                                  ! [mmol/m^2/day]
@@ -7149,6 +7167,24 @@
   'benthic_flux_Si, scalar, series'
   'ocean_time'
   'idbSF(ibJSi)'
+  'r2dvar'
+  1.0d0
+
+'benthic_flux_TIC'                                    ! Input/Output
+  'flux of total inorganic carbon between sediment and water column'
+  'mmol/meter-2/day'                                  ! [mmol/m^2/day]
+  'benthic_flux_TIC, scalar, series'
+  'ocean_time'
+  'idbSF(ibJTIC)'
+  'r2dvar'
+  1.0d0
+
+'benthic_flux_Alk'                                    ! Input/Output
+  'flux of total alkalinity between sediment and water column'
+  'mmol/meter-2/day'                                  ! [mmol/m^2/day]
+  'benthic_flux_Alk, scalar, series'
+  'ocean_time'
+  'idbSF(ibJAlk)'
   'r2dvar'
   1.0d0
 
