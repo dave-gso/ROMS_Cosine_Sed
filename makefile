@@ -29,7 +29,7 @@
 #                                                                       :::
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-NEED_VERSION := 3.80 3.81 3.82 3.82.90 4.0 4.1
+NEED_VERSION := 3.80 3.81 3.82 3.82.90 4.0 4.1 4.2.1
 $(if $(filter $(MAKE_VERSION),$(NEED_VERSION)),,        \
  $(error This makefile requires one of GNU make version $(NEED_VERSION).))
 
@@ -59,9 +59,9 @@ $(if $(filter $(MAKE_VERSION),$(NEED_VERSION)),,        \
 #  the .h extension. For example, the upwelling application includes the
 #  "upwelling.h" header file.
 
-ROMS_APPLICATION ?= EPSCOR_UMAINE15
+#ROMS_APPLICATION ?= EPSCOR_UMAINE15
 #ROMS_APPLICATION ?= EPSCOR_UMAINE15_NOSEDBIO
-#ROMS_APPLICATION ?= EPSCOR_UMAINE15_SEDBIO
+ROMS_APPLICATION ?= EPSCOR_UMAINE15_SEDBIO
 #ROMS_APPLICATION ?= EPSCOR_UMAINE15_NOCARBON_SEDBIO
 
 #  If application header files is not located in "ROMS/Include",
@@ -69,7 +69,7 @@ ROMS_APPLICATION ?= EPSCOR_UMAINE15
 
 #MY_HEADER_DIR ?= /home/dave/projects/OSOM_Cosine_Sedbio
 #MY_HEADER_DIR ?= /home/dave/projects/OSOM_Cosine_Sedbio_mod9
-MY_HEADER_DIR ?= /home/dave/projects/OSOM_Cosine_halved
+MY_HEADER_DIR ?= /home/abaskind/runmodel
 
 #  If your application requires analytical expressions and they are
 #  not located in "ROMS/Functionals", provide an alternate directory.
@@ -151,7 +151,7 @@ MY_CPP_FLAGS ?=
 #--------------------------------------------------------------------------
 
 #     BINDIR ?= /home/dave/projects/OSOM_Cosine_Sedbio_mod9
-      BINDIR ?= /home/dave/projects/OSOM_Cosine_halved
+      BINDIR ?= /home/abaskind/runmodel
 
 #==========================================================================
 #  End of user-defined options. See also the machine-dependent include
@@ -163,7 +163,7 @@ MY_CPP_FLAGS ?=
 #--------------------------------------------------------------------------
 
 #SCRATCH_DIR ?= Build
-SCRATCH_DIR ?= /home/dave/projects/OSOM_Cosine_halved/Build
+SCRATCH_DIR ?= /home/abaskind/runmodel/Build
 #SCRATCH_DIR ?= /home/dave/projects/OSOM_Cosine_Sedbio_mod9/Build
 
  clean_list := core *.ipo $(SCRATCH_DIR)

@@ -1568,16 +1568,15 @@
      &                      bUC(LBi:,j,:), bUN(LBi:,j,:),              &
      &                      bUP(LBi:,j,:), bUS(LBi:,j,:),              &
      &                      JNO3(LBi:,j), JNH4(LBi:,j),                &
-     &                      JPO4(LBi:,j), JSi(LBi:,j), SOD(LBi:,j),    &    
+     &                      JPO4(LBi:,j), JSi(LBi:,j), SOD(LBi:,j),    &
 #   ifdef CARBON
-    &                      Bio(LBi:,1,iTIC_), bTIC(LBi:,j),            &    
-    &                      JTIC(LBi:,j),                               &    
+    &                      Bio(LBi:,1,iTIC_), bTIC(LBi:,j),            &
+    &                      JTIC(LBi:,j),                               &
 #   ifdef TALK_NONCONSERV
-    &                      Bio(LBi:,1,iTAlk), bAlk(LBi:,j),            &    
+    &                      Bio(LBi:,1,iTAlk), bAlk(LBi:,j),            &
     &                      JAlk(LBi:,j))
 #   endif
 #   endif
-
 
 ! WRITTEN IN SEDIMENT_BIOLOGY.F AS FOLLOWS-------------------------------
 ! SUBROUTINE sediment_bio(ng, Istr, Iend, LBi, UBi,                &    
