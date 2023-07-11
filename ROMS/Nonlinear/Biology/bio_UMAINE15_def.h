@@ -104,7 +104,7 @@
       IF (exit_flag.ne.NoError) RETURN
 
       Vinfo( 1)='amaxs2'
-      Vinfo( 2)='initial slope of P-I curve of small phytoplankton'
+      Vinfo( 2)='initial slope of P-I curve of diatom'
       Vinfo( 3)='meter2 watts-1 day-1'
       status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
      &               1, (/0/), Aval, Vinfo, ncname,                     &
@@ -414,7 +414,114 @@
       status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
      &               1, (/0/), Aval, Vinfo, ncname,                     &
      &               SetParAccess = .FALSE.)
-      IF (exit_flag.ne.NoError) return           
+      IF (exit_flag.ne.NoError) return
+
+#ifdef HAB
+      Vinfo( 1)='gmaxs3'
+      Vinfo( 2)='maximum specific growth rate of HAB phyto'
+      Vinfo( 3)='day-1'
+      status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+      IF (exit_flag.ne.NoError) RETURN
+
+      Vinfo( 1)='amaxs3'
+      Vinfo( 2)='initial slope of P-I curve of HAB phytoplankton'
+      Vinfo( 3)='meter2 watts-1 day-1'
+      status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+      IF (exit_flag.ne.NoError) RETURN
+
+      Vinfo( 1)='parsats3'
+      Vinfo( 2)='PAR saturation onset parameter for iHphy'
+      Vinfo( 3)='watts m-2'
+      status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+      IF (exit_flag.ne.NoError) RETURN
+
+      Vinfo( 1)='pis3'
+      Vinfo( 2)='ammonium inhibition parameter for iHphy'
+      Vinfo( 3)='millimole_N meter-3'
+      status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+      IF (exit_flag.ne.NoError) RETURN
+
+      Vinfo( 1)='akno3s3'
+      Vinfo( 2)='half saturation of nitrate uptake by iHphy'
+      Vinfo( 3)='millimole_N meter-3'
+      status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+      IF (exit_flag.ne.NoError) RETURN
+
+      Vinfo( 1)='aknh4s3'
+      Vinfo( 2)='half saturation of ammonium uptake by iHphy'
+      Vinfo( 3)='millimole_N meter-3'
+      status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+      IF (exit_flag.ne.NoError) RETURN
+
+      Vinfo( 1)='akpo4s3'
+      Vinfo( 2)='half saturation of phosphate uptake by iHphy'
+      Vinfo( 3)='millimole_P meter-3'
+      status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+      IF (exit_flag.ne.NoError) RETURN
+
+      Vinfo( 1)='akco2s3'
+      Vinfo( 2)='half saturation of co2 uptake by iHphy'
+      Vinfo( 3)='millimole_C meter-3'
+      status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+      IF (exit_flag.ne.NoError) RETURN
+
+      Vinfo( 1)='aksio4s3'
+      Vinfo( 2)='half saturation of silicate uptake by iHphy'
+      Vinfo( 3)='millimole_Si meter-3'
+      status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+      IF (exit_flag.ne.NoError) RETURN
+
+      Vinfo( 1)='bgamma4s3'
+      Vinfo( 2)='death rate of HAB phytoplankton'
+      Vinfo( 3)='day-1'
+      status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+      IF (exit_flag.ne.NoError) RETURN
+
+      Vinfo( 1)='wsp3'
+      Vinfo( 2)='sinking velocity of HAB phytoplankton'
+      Vinfo( 3)='meter day-1'
+      status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+      IF (exit_flag.ne.NoError) RETURN
+
+      Vinfo( 1)='ro5H'
+      Vinfo( 2)='grazing preference for HAB phyto'
+      Vinfo( 3)='nondimensional'
+      status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+      IF (exit_flag.ne.NoError) return
+
+      Vinfo( 1)='Chl2cs3_m'
+      Vinfo( 2)='Maximum chlorophyll to carbon ratio for HAB phyto'
+      Vinfo( 3)='mg_Chl/mg_C'
+      status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+      IF (exit_flag.ne.NoError) return
+#endif
+
 #ifdef SEDBIO
       Vinfo( 1)='bUmax'
       Vinfo( 2)='Maximum POM decay rate'

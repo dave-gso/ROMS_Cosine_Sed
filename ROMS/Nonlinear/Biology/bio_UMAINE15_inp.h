@@ -172,6 +172,34 @@
           CASE('optic_upd_fac')
             Npts=load_r(Nval, Rval, Ngrids, optic_upd_fac)
 #endif
+#ifdef HAB
+          CASE('gmaxs3')
+            Npts=load_r(Nval, Rval, Ngrids, gmaxs3)
+          CASE('amaxs3')
+            Npts=load_r(Nval, Rval, Ngrids, amaxs3)
+          CASE('parsats3')
+            Npts=load_r(Nval, Rval, Ngrids, parsats3)
+          CASE('pis3')
+            Npts=load_r(Nval, Rval, Ngrids, pis3)
+          CASE('akno3s3')
+            Npts=load_r(Nval, Rval, Ngrids, akno3s3)
+          CASE('aknh4s3')
+            Npts=load_r(Nval, Rval, Ngrids, aknh4s3)
+          CASE('akpo4s3')
+            Npts=load_r(Nval, Rval, Ngrids, akpo4s3)
+          CASE('akco2s3')
+            Npts=load_r(Nval, Rval, Ngrids, akco2s3)
+          CASE('aksio4s3')
+            Npts=load_r(Nval, Rval, Ngrids, aksio4s3)
+          CASE('bgamma4s3')
+            Npts=load_r(Nval, Rval, Ngrids, bgamma4s3)
+          CASE('wsp3')
+            Npts=load_r(Nval, Rval, Ngrids, wsp3)
+          CASE('ro5H')
+            Npts=load_r(Nval, Rval, Ngrids, ro5H)
+          CASE('Chl2cs3_m')
+            Npts=load_r(Nval, Rval, Ngrids, Chl2cs3_m)
+#endif
 #ifdef SEDBIO
           CASE ('BSEDPARNAM')
             DO i=1,LEN(bsedparnam)
@@ -665,9 +693,46 @@
             WRITE (out,110) Chl2cs1_m(ng), 'Chl2cs1_m',                &
      &            'Maximum chlorophyll to carbon ratio for',           &
      &            'sphytoplankton [mg_Chl/mg_C)].'
-            WRITE (out,110) Chl2cs2_m(ng), 'Chl2cs1_m',                &
+            WRITE (out,110) Chl2cs2_m(ng), 'Chl2cs2_m',                &
      &            'Maximum chlorophyll to carbon ratio for',           &
      &            'Diatom [mg_Chl/mg_C)].'
+#ifdef HAB
+            WRITE (out,100) gmaxs3(ng), 'gmaxs3',                      &
+     &            'Maximum specific growth rate of HAB phyto [1/day].'
+            WRITE (out,110) amaxs3(ng), 'amaxs3',                      &
+     &            'Initial slope of P-I curve of HAB',                 &
+     &            'phytoplankton [1/(Watts/m2)/day].'
+            WRITE (out,110) parsats3(ng), 'parsats3',                  &
+     &            'PAR saturation onset parameter of HAB phyto',       &
+     &            '[Watts/m2].'
+            WRITE (out,110) pis3(ng), 'pis3',                          &
+     &            'Ammonium inhibition parameter for HAB phyto',       &
+     &            '[mmol_N/m3].'
+            WRITE (out,110) akno3s3(ng), 'akno3s3',                    &
+     &            'Half saturation concentration for nitrate',         &
+     &            'uptake by HAB phyto [mmol_N/m3].'
+            WRITE (out,110) aknh4s3(ng), 'aknh4s3',                    &
+     &            'Half saturation concentration for ammonium',        &
+     &            'uptake by HAB phyto [mmol_N/m3].'
+            WRITE (out,110) akpo4s3(ng), 'akpo4s3',                    &
+     &            'Half saturation concentration for phosphate',       &
+     &            'uptake by HAB phyto [mmol_P/m3].'
+            WRITE (out,110) akco2s3(ng), 'akco2s3',                    &
+     &            'Half saturation concentration for co2',             &
+     &            'uptake by HAB phyto [mmol_C/m3].'
+            WRITE (out,110) aksio4s3(ng), 'aksio4s3',                  &
+     &            'Half saturation constant for silicate',             &
+     &            'uptake by HAB phyto [mmol_N/m3].'
+            WRITE (out,100) bgamma4s3(ng), 'bgamma4s3',                    &
+     &            'Death rate of HAB phytoplankton [1/day].'
+            WRITE (out,100) wsp3(ng), 'wsp3',                            &
+     &            'Sinking velocity of HAB phytoplankton [m/day].'
+            WRITE (out,100) ro5H(ng), 'ro5H',                            &
+     &            'Grazing preference for HAB phyto [nondimensional].'
+            WRITE (out,110) Chl2cs3_m(ng), 'Chl2cs3_m',                &
+     &            'Maximum chlorophyll to carbon ratio for',           &
+     &            'HAB phyto [mg_Chl/mg_C)].'
+#endif
 #ifdef SEDBIO
             fname=bsedparnam
             IF (.not.find_file(ng, fname, 'BSEDPOSNAM')) THEN

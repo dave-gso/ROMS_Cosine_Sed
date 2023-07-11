@@ -247,10 +247,76 @@
      &                      ncid = ncid)
       IF (exit_flag.ne.NoError) return
       
-     CALL netcdf_put_fvar (ng, model, ncname, 'Chl2cs2_m',              &
+      CALL netcdf_put_fvar (ng, model, ncname, 'Chl2cs2_m',             &
      &                      Chl2cs2_m(ng), (/0/), (/0/),                &
      &                      ncid = ncid)
       IF (exit_flag.ne.NoError) RETURN
+#ifdef HAB
+      CALL netcdf_put_fvar (ng, model, ncname, 'gmaxs3',                &
+     &                      gmaxs3(ng), (/0/), (/0/),                   &
+     &                      ncid = ncid)
+      IF (exit_flag.ne.NoError) RETURN
+
+      CALL netcdf_put_fvar (ng, model, ncname, 'amaxs3',                &
+     &                      amaxs3(ng), (/0/), (/0/),                   &
+     &                      ncid = ncid)
+      IF (exit_flag.ne.NoError) RETURN
+
+      CALL netcdf_put_fvar (ng, model, ncname, 'parsats3',              &
+     &                      parsats3(ng), (/0/), (/0/),                 &
+     &                      ncid = ncid)
+      IF (exit_flag.ne.NoError) RETURN
+
+      CALL netcdf_put_fvar (ng, model, ncname, 'pis3',                  &
+     &                      pis3(ng), (/0/), (/0/),                     &
+     &                      ncid = ncid)
+      IF (exit_flag.ne.NoError) RETURN
+
+      CALL netcdf_put_fvar (ng, model, ncname, 'akno3s3',               &
+     &                      akno3s3(ng), (/0/), (/0/),                  &
+     &                      ncid = ncid)
+      IF (exit_flag.ne.NoError) RETURN
+
+      CALL netcdf_put_fvar (ng, model, ncname, 'aknh4s3',               &
+     &                      aknh4s3(ng), (/0/), (/0/),                  &
+     &                      ncid = ncid)
+      IF (exit_flag.ne.NoError) RETURN
+
+      CALL netcdf_put_fvar (ng, model, ncname, 'akpo4s3',               &
+     &                      akpo4s3(ng), (/0/), (/0/),                  &
+     &                      ncid = ncid)
+      IF (exit_flag.ne.NoError) RETURN
+
+      CALL netcdf_put_fvar (ng, model, ncname, 'akco2s3',               &
+     &                      akco2s3(ng), (/0/), (/0/),                  &
+     &                      ncid = ncid)
+      IF (exit_flag.ne.NoError) RETURN
+
+      CALL netcdf_put_fvar (ng, model, ncname, 'aksio4s3',              &
+     &                      aksio4s3(ng), (/0/), (/0/),                 &
+     &                      ncid = ncid)
+      IF (exit_flag.ne.NoError) RETURN
+
+      CALL netcdf_put_fvar (ng, model, ncname, 'bgamma4s3',             &
+     &                      bgamma4s3(ng), (/0/), (/0/),                &
+     &                      ncid = ncid)
+      IF (exit_flag.ne.NoError) RETURN
+
+      CALL netcdf_put_fvar (ng, model, ncname, 'wsp3',                  &
+     &                      wsp3(ng), (/0/), (/0/),                     &
+     &                      ncid = ncid)
+      IF (exit_flag.ne.NoError) RETURN
+
+      CALL netcdf_put_fvar (ng, model, ncname, 'ro5H',                   &
+     &                      ro5H(ng), (/0/), (/0/),                      &
+     &                      ncid = ncid)
+      IF (exit_flag.ne.NoError) RETURN
+
+      CALL netcdf_put_fvar (ng, model, ncname, 'Chl2cs3_m',             &
+     &                      Chl2cs3_m(ng), (/0/), (/0/),                &
+     &                      ncid = ncid)
+      IF (exit_flag.ne.NoError) RETURN
+#endif
 #ifdef SEDBIO
       CALL netcdf_put_fvar (ng, model, ncname, 'bUmax',                 &
      &                      BUmax(ng,:), (/1/), (/nspc/),           &

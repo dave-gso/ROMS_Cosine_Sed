@@ -1,11 +1,12 @@
 !                                                                      !
-!  Parameters for UMaine CoSiNE model:                                 !
+!  Parameters for UMaine CoSiNE model with added HAB phyto class:      !
 !                                                                      !
 !   reg1     Microzooplankton excretion rate to ammonium [1/day].      !
 !   reg2     Mesozooplankton excretion rate to ammonium [1/day].       !
 !   gmaxs1   Maximum specific growth rate of small phytoplankton       !
 !              [1/day]                                                 !
 !   gmaxs2   Maximum specific growth rate of diatom [1/day]            !
+!   gmaxs3   Maximum specific growth rate of HAB phyto [1/day]         !
 !   beta1    Microzooplankton maximum grazing rate [1/day]             !
 !   beta2    Mesozooplankton maximum grazing rate [1/day]              !
 !   akz1     Half saturation constant for microzooplankton grazing     !
@@ -18,33 +19,48 @@
 !              [1/(Watts/m2)/day]                                      !
 !   amaxs2   Initial slope of P-I curve of large phytoplankton         !
 !              [1/(Watts/m2)/day]                                      !
+!   amaxs3   Initial slope of P-I curve of HAB phytoplankton           !
+!              [1/(Watts/m2)/day]                                      !
 !   parsats1 PAR saturation onset parameter of small phytoplankton     !
 !              [Watts/m2]                                              !
 !   parsats2 PAR saturation onset parameter of diatom [Watts/m2]       !
 !              [Watts/m2]                                              !
+!   parsats3 PAR saturation onset parameter of HAB phyto [Watts/m2]    !
+!              [Watts/m2]                                              !
 !   pis1     Ammonium inhibition parameter for small phytoplankton     !
 !              [mmol_N/m3]                                             !
 !   pis2     Ammonium inhibition parameter for diatom [mmol_N/m3]      !
+!   pis3     Ammonium inhibition parameter for HAB phyto [mmol_N/m3]   !
 !   akno3s1  Half saturation concentration for nitrate uptake by       !
 !              small phytoplankton [mmol_N/m3].                        !
 !   akno3s2  Half saturation concentration for nitrate uptake by       !
 !              diatom [mmol_N/m3].                                     !
+!   akno3s3  Half saturation concentration for nitrate uptake by       !
+!              HAB phyto [mmol_N/m3].                                  !
 !   aknh4s1  Half saturation concentration for ammonium uptake by      !
 !              small phytoplankton [mmol_N/m3].                        !
 !   aknh4s2  Half saturation concentration for ammonium uptake by      !
 !              diatom [mmol_N/m3].                                     !
+!   aknh4s3  Half saturation concentration for ammonium uptake by      !
+!              HAB phyto [mmol_N/m3].                                  !
 !   akpo4s1  Half saturation concentration for phosphate uptake by     !
 !              small phytoplankton [mmol_P/m3].                        !
 !   akpo4s2  Half saturation concentration for phosphate uptake by     !
 !              diatom [mmol_P/m3].                                     !
+!   akpo4s3  Half saturation concentration for phosphate uptake by     !
+!              HAB phyto [mmol_P/m3].                                  !
 !   akco2s1  Half saturation concentration for co2 uptake by           !
 !              small phytoplankton [mmol_C/m3].                        !
 !   akco2s2  Half saturation concentration for co2 uptake by           !
 !              diatom [mmol_C/m3].                                     !
+!   akco2s3  Half saturation concentration for co2 uptake by           !
+!              HAB phyto [mmol_C/m3].                                  !
 !   aksio4s2 Half saturation constant for silicate uptake by           !
 !              diatom [mmol_Si/m3].                                    !
+!   aksio4s3 Half saturation constant for silicate uptake by           !
+!              HAB phyto [mmol_Si/m3].                                 !
 !   akox     Half saturation constant for oxidation                    !
-!                 [mmol_O/m3].  
+!                 [mmol_O/m3].                                         !
 !   ak1      Light attenuation coefficient of water [1/m]              !
 !   ak2      Specific light attenuation coefficient for                !
 !              phytoplankton [1/m/(mmol_N/m3)].                        !
@@ -53,12 +69,14 @@
 !   bgamma2   Grazing efficiency of mesozooplankton [nondimensional].  !
 !   bgamma3   Death rate of small phytoplankton [1/day].               !
 !   bgamma4   Death rate of large phytoplankton [1/day].               !
+!   bgamma4s3   Death rate of HAB phytoplankton [1/day].               !
 !   bgamma5   Decay rate of detritus [1/day].                          !
 !   bgamma6                                                            !
 !   bgamma7   Nitrafication rate [1/day].                              !
 !   wsd      Sinking velocity of detritus [m/day].                     !
 !   wsdsi    Sinking velocity of detritus silicate [m/day].            !
 !   wsp      Sinking velocity of large phytoplankton [m/day].          !
+!   wsps3    Sinking velocity of HAB phytoplankton [m/day].            !
 !   pco2a    Air pCO2 [ppmv].                                          !
 !   si2n     Silicate to nitrogen ratio [mol_Si/mol_N].                !
 !   p2n      Phosphorus to nitrogen ratio [mol_P/mol_N].               !
@@ -68,10 +86,13 @@
 !   ro5      Grazing preference for diatom [nondimensional].           !
 !   ro6      Grazing preference for mesozooplankton [nondimensional]   !
 !   ro7      Grazing preference for detritus [nondimensional].         !
+!   ro5H      Grazing preference for HAB phyto [nondimensional].         !
 !   By: PENG XIU 12/2013        
 !   Chl2cs1_m  Maximum chlorophyll to carbon ratio for sphytoplankton    
 !                 [mg_Chl/mg_C]                                        !
 !   Chl2cs2_m  Maximum chlorophyll to carbon ratio for Diatom
+!                 [mg_Chl/mg_C]
+!   Chl2cs3_m  Maximum chlorophyll to carbon ratio for HAB phyto
 !                 [mg_Chl/mg_C]
 #ifdef OPTICS_OP1
 !   optic_upd_fac  number of timesteps between updates of kdPAR       !
@@ -108,6 +129,10 @@
 #endif
       integer :: iChl1                 ! Chlorophyll concentration for small phytoplankton
       integer :: iChl2                 ! Chlorophyll concentration for diatom
+#ifdef HAB
+      integer :: iHphy                 ! HAB phytoplankton
+      integer :: iChl3                 ! Chlorophyll concentration for HAB phytoplankton
+#endif
 !
 #if defined DIAGNOSTICS && defined DIAGNOSTICS_BIO
 !
@@ -181,6 +206,21 @@
       real(r8), allocatable :: pCO2air(:)         ! ppmv
       real(r8), allocatable :: Chl2cs1_m(:)         ! mg_Chl/mg_C
       real(r8), allocatable :: Chl2cs2_m(:)         ! mg_Chl/mg_C
+#ifdef HAB
+      real(r8), allocatable :: gmaxs3(:)          ! 1/day
+      real(r8), allocatable :: amaxs3(:)          ! 1/(Watts/m2)/day
+      real(r8), allocatable :: parsats3(:)        ! Watts/m2
+      real(r8), allocatable :: pis3(:)            ! m3/mmol_N
+      real(r8), allocatable :: akno3s3(:)         ! mmol_N/m3
+      real(r8), allocatable :: aknh4s3(:)         ! mmol_N/m3
+      real(r8), allocatable :: akpo4s3(:)         ! mmol_P/m3
+      real(r8), allocatable :: akco2s3(:)         ! mmol_C/m3
+      real(r8), allocatable :: aksio4s3(:)        ! mmol_Si/m3
+      real(r8), allocatable :: bgamma4s3(:)         ! 1/day
+      real(r8), allocatable :: wsp3(:)             ! m/day
+      real(r8), allocatable :: ro5H(:)             ! nondimensional
+      real(r8), allocatable :: Chl2cs3_m(:)         ! mg_Chl/mg_C
+#endif
 #ifdef OPTICS_OP1
       real(r8), allocatable :: optic_upd_fac(:)    ! nondimensional
 #endif
@@ -242,7 +282,9 @@
       NBT=12
 # endif
 #endif
-
+#ifdef HAB
+      NBT=NBT+2
+#endif
 #if defined DIAGNOSTICS && defined DIAGNOSTICS_BIO
       NDbio3d=3
       NDbio2d=0
@@ -423,6 +465,47 @@
       if (.not.allocated(Chl2cs2_m)) THEN
         allocate ( Chl2cs2_m(Ngrids) )
       END IF
+#ifdef HAB
+      IF (.not.allocated(gmaxs3)) THEN
+        allocate ( gmaxs3(Ngrids) )
+      END IF
+      IF (.not.allocated(amaxs3)) THEN
+        allocate ( amaxs3(Ngrids) )
+      END IF
+      IF (.not.allocated(parsats3)) THEN
+        allocate ( parsats3(Ngrids) )
+      END IF
+      IF (.not.allocated(pis3)) THEN
+        allocate ( pis3(Ngrids) )
+      END IF
+      IF (.not.allocated(akno3s3)) THEN
+        allocate ( akno3s3(Ngrids) )
+      END IF
+      IF (.not.allocated(aknh4s3)) THEN
+        allocate ( aknh4s3(Ngrids) )
+      END IF
+      IF (.not.allocated(akpo4s3)) THEN
+        allocate ( akpo4s3(Ngrids) )
+      END IF
+      IF (.not.allocated(akco2s3)) THEN
+        allocate ( akco2s3(Ngrids) )
+      END IF
+      IF (.not.allocated(aksio4s3)) THEN
+        allocate ( aksio4s3(Ngrids) )
+      END IF
+      IF (.not.allocated(Chl2cs3_m)) THEN
+        allocate ( Chl2cs3_m(Ngrids) )
+      END IF
+      IF (.not.allocated(ro5H)) THEN
+        allocate ( ro5H(Ngrids) )
+      END IF
+      IF (.not.allocated(wsp3)) THEN
+        allocate ( wsp3(Ngrids) )
+      END IF
+      IF (.not.allocated(bgamma4s3)) THEN
+        allocate ( bgamma4s3(Ngrids) )
+      END IF
+#endif
 #ifdef OPTICS_OP1
       if (.not.allocated(optic_upd_fac)) THEN
         allocate ( optic_upd_fac(Ngrids) )
@@ -536,6 +619,11 @@
 # ifdef CARBON
       iTIC_=ic+1
       iTAlk=ic+2
+      ic=ic+2
+# endif
+# ifdef HAB
+      iHphy=ic+1
+      iChl3=ic+2
       ic=ic+2
 # endif
 
