@@ -374,7 +374,7 @@
       real(r8) :: npchl1,npchl2,gchl1zz1,gchl2zz2,morchl1,morchl2
       real(r8) :: Qsms14,Qsms15,NQsms14,NQsms15,sms14,sms15
       real(r8) :: Chl2C_s1,Chl2C_s2,excrz1_2,excrz2_2,II00
-      real(r8) :: aggregs1,aggregs2,aggregchl1,aggregchl2
+      real(r8) :: aggregs1,aggregs2,aggregchl1,aggregchl2,sumphy
 #ifdef HAB
       real(r8) :: alts3,grows3,unh4s3,uno3s3,usio4s3,upo4s3,uco2s3
       real(r8) :: gno3s3,gnh4s3,gsio4s3,pnh4s3
@@ -382,7 +382,7 @@
       real(r8) :: npchl3,gchl3zz3,morchl3
       real(r8) :: Qsms16,Qsms17,NQsms16,NQsms17,sms16,sms17
       real(r8) :: Chl2C_s3
-      real(r8) :: aggregs3,aggregchl3,sumphy
+      real(r8) :: aggregs3,aggregchl3
       real(r8) :: gs3zz2,gchl3zz2
 #endif
       real(r8) :: cffL, cffR, cu, dltL, dltR
