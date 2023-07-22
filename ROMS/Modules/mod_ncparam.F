@@ -352,6 +352,10 @@
 #ifdef OPTICS_OP1
         integer  :: idkdPAR       ! light attenuation coefficient
 #endif
+! AKB 6/22/23
+#ifdef CARBON
+        integer  :: idfgCO2       ! CO2 surface flux
+#endif 
 !
 !  Last used variable ID counter.
 !

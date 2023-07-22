@@ -50,6 +50,12 @@
                 idTvar(iTIC_)=varid
               CASE ('idTvar(iTAlk)')
                 idTvar(iTAlk)=varid
+! AKB 6/22/23
+! Added in CO2 downward surface flux when CARBON is on
+! Unsure if order matters here so maybe this will throw an error
+
+              CASE ('idfgCO2')
+                idfgCO2=varid
 #endif
               CASE ('idTvar(iChl1)')
                 idTvar(iChl1)=varid

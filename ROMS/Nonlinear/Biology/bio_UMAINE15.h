@@ -113,6 +113,8 @@
 #endif
 #ifdef CARBON
      &                   OCEAN(ng) % pH,                               &
+! AKB 6/22/23
+     &                   OCEAN(ng) % fgCO2,                            &
 #endif
 #ifdef OPTICS_OP1
      &                   OCEAN(ng) % kdpar,                            &
@@ -157,6 +159,8 @@
 #endif
 #ifdef CARBON
      &                         pH,                                     &
+! AKB 6/22/23
+     &                         fgCO2,                                  &
 #endif
 #ifdef OPTICS_OP1
      &                         kdpar,                                  &
@@ -212,6 +216,8 @@
 # endif
 # ifdef CARBON
       real(r8), intent(inout) :: pH(LBi:,LBj:)
+! AKB 6/22/23
+      real(r8), intent(inout) :: fgCO2(LBi:,LBj:)
 # endif
 # ifdef OPTICS_OP1
       real(r8), intent(inout) :: kdpar(LBi:,LBj:,:)
@@ -252,6 +258,8 @@
 # endif
 # ifdef CARBON
       real(r8), intent(inout) :: pH(LBi:UBi,LBj:UBj)
+! AKB 6/22/23
+      real(r8), intent(inout) :: fgCO2(LBi:UBi,LBj:UBj)
 # ifdef OPTICS_OP1
       real(r8), intent(inout) :: kdpar(LBi:UBi,LBj:UBj,UBk)
 # endif
@@ -407,7 +415,6 @@
       logical :: inan
 
 #include "set_bounds.h"
-
 
 #ifdef DIAGNOSTICS_BIO
 !
@@ -1289,6 +1296,7 @@
 !  CALCULATING
 !  Surface equilibrium partial pressure inorganic carbon (ppmv) at the
 !  surface, and CO2 gas exchange.
+!  CO2 flux is downward/positive into the water.
 !-----------------------------------------------------------------------
 !
       k=N(ng)
@@ -1308,6 +1316,9 @@
      &                     kw660, 1.0_r8,pco2a(ng), co2flx,pco2s)
       DO i=Istr,Iend
         Bio(i,k,iTIC_)=Bio(i,k,iTIC_)+dtdays*co2flx(i)*Hz_inv(i,k)
+! AKB 6/22/23
+        fgCO2(i,j)=co2flx(i)
+
 !        if( Bio(i,k,iTIC_).gt.5000_r8 ) Then
 !           write(*,*)'i=',i,'k=',k,'Bio(i,k,iTIC_)=',Bio(i,k,iTIC_),   &
 !     &     'T=',Bio(i,k,itemp),'S=',Bio(i,k,isalt),'TAlk=',Bio(i,k,iTAlk)
@@ -1750,7 +1761,8 @@
 #ifdef MASKING
      &                     rmask,                                      &
 #endif
-     &                     t, ss,dic, alk,po4,si,kw660, ppo, xco2,     &
+     &                     t, ss,dic, alk,po4,si,kw660,                &
+     &                     ppo, xco2,                                  &
      &                     co2ex,pco2s)
 !
 !**********************************************************************

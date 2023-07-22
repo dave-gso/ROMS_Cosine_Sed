@@ -31,7 +31,8 @@
 !  Biology Variables.                                                  !
 !                                                                      !
 !  pH           Surface concentration of hydrogen ions.                !
-!
+!  fgCO2        Co2 downward surface flux
+
 #if (defined BIO_UMAINE31 || defined BIO_UMAINE13 \
     || defined BIO_UMAINE15) && \
       defined OPTICS_OP1
@@ -95,11 +96,17 @@
       defined CARBON
 
           real(r8), pointer :: pH(:,:)
+!          real(r8), pointer :: fgCO2(:,:)
 # endif
 # if (defined BIO_UMAINE31 || defined BIO_UMAINE13 \
     || defined BIO_UMAINE15) && \
       defined OPTICS_OP1
           real(r8), pointer :: kdpar(:,:,:)
+# endif
+# if (defined BIO_UMAINE31 || defined BIO_UMAINE13 || defined BIO_UMAINE15)
+# if defined CARBON
+          real(r8), pointer :: fgCO2(:,:)
+# endif
 # endif
 #endif
 
@@ -334,6 +341,12 @@
       defined BIO_UMAINE13 || defined BIO_UMAINE15) && \
       defined CARBON
       allocate ( OCEAN(ng) % pH(LBi:UBi,LBj:UBj) )
+# endif
+
+# if (defined BIO_UMAINE31 || defined BIO_UMAINE13 || defined BIO_UMAINE15)
+# if  defined CARBON
+      allocate ( OCEAN(ng) % fgCO2(LBi:UBi,LBj:UBj) )
+# endif
 # endif
 
 # if (defined BIO_UMAINE31 || defined BIO_UMAINE13 \
@@ -634,6 +647,11 @@
       defined BIO_UMAINE13 || defined BIO_UMAINE15) && \
       defined CARBON && defined SOLVE3D
             OCEAN(ng) % pH(i,j) = 8.0_r8
+# endif
+# if (defined BIO_UMAINE31 || defined BIO_UMAINE13 || defined BIO_UMAINE15)
+# if defined CARBON
+            OCEAN(ng) % fgCO2(i,j) = 0.0_r8
+# endif
 # endif
           END DO
 #ifdef SOLVE3D

@@ -7207,3 +7207,14 @@
   'r3dvar'
   1.0d0
 
+! CO2 surface flux
+! AKB 6/21/23
+'fgCO2'                                              ! Output
+  'CO2 downward surface flux'
+  'mmol/meter-3/day'                               ! [mmol/m^3/day]
+  'CO2 surface flux, scalar, series'
+  'ocean_time'
+  'idfgCO2'
+  'r2dvar'
+  1.0d0
+

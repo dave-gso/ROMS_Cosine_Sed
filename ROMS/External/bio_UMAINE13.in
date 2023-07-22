@@ -358,7 +358,9 @@ ad_LBC(isTvar) ==   Per     Clo     Per     Clo \    !
 ! into HISTORY output file: [1:NBT,Ngrids].                                                                
                                                                                                            
 Hout(idTvar) == 13*T    ! NO3, ...           biological tracer                                             
-Hout(idTsur) == 13*F    ! NO3_sflux, ...     surface tracer flux                                           
+Hout(idTsur) == 13*F    ! NO3_sflux, ...     surface tracer flux
+
+Hout(idfgCO2) == T      ! CO2 flux                                           
                                                                                                            
 ! Logical switches (TRUE/FALSE) to activate writing of time-averaged fields                                
 ! into AVERAGE output file: [1:NBT,Ngrids].                                                                
