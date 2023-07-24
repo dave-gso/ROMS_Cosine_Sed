@@ -5,9 +5,13 @@
       implicit none
       integer, parameter :: nspc = 3   ! number of sediment particulate classes
       integer, parameter :: NPOM = 4   ! number of POM variables
-      integer, parameter :: NPWC = 4   ! number of pore water conc. variables
+                                       ! (ibPOC, ibPON, ibPOP, ibPSi)
+      integer, parameter :: NPWC = 6   ! number of pore water conc. variables
+                                       ! (ibNO3, ibNH4, ibPO4, ibSi, ibTIC, ibAlk)
       integer, parameter :: NDR = 4    ! number of decay rate variables
-      integer, parameter :: NSF = 5    ! number of sediment-water flux variables
+                                       ! (ibUC, ibUN, ibUP, ibUS)
+      integer, parameter :: NSF = 7    ! number of sediment-water flux variables
+                                       ! (ibJNO3, ibJNH4, ibJPO4, ibJSi, ibSOD, ibJTIC, ibJALK)
       integer :: NBBT                  ! total number of sediment bio variables
 
 ! benthic variables indices
@@ -23,6 +27,8 @@
       integer, parameter  :: ibNH4 = 2        ! pore water NH4 concentration
       integer, parameter  :: ibPO4 = 3        ! pore water PO4 concentration
       integer, parameter  :: ibSi  = 4        ! pore water Silicate concentration
+      integer, parameter  :: ibTIC = 5        ! pore water TIC concentration
+      integer, parameter  :: ibAlk = 6        ! pore water alkalinity concentration
       integer :: idbDR(NDR)       ! Benthic POM decay rates
       integer :: ibbDR(NDR)       ! indices for SEDBIOL arrays
       integer, parameter   :: ibUC = 1        ! decay rate of particulate carbon
@@ -36,6 +42,8 @@
       integer, parameter  :: ibJPO4 = 3       ! benthic flux of PO4
       integer, parameter  :: ibJSi  = 4       ! benthic flux of Silicate
       integer, parameter  :: ibSOD  = 5       ! benthic oxygen demand
+      integer, parameter  :: ibJTIC = 6       ! benthic flux of TIC
+      integer, parameter  :: ibJAlk = 7       ! benthic flux of alkalinity
     
       TYPE T_SEDBIOL
 !
@@ -45,19 +53,26 @@
 !   sedPOM(:,:,:,ibPON) => Particulate organic nitrogen concentration
 !   sedPOM(:,:,:,ibPOP) => Particulate organic phosphorous concentration
 !   sedPOM(:,:,:,ibPSi) => Particulate silicon concentration
+
 !   sedPoreWaterCon(:,:,ibNO3) => pore water nitrate concentration
 !   sedPoreWaterCon(:,:,ibNH4) => pore water ammonium concentration
 !   sedPoreWaterCon(:,:,ibPO4) => pore water phosphate concentration
 !   sedPoreWaterCon(:,:,ibSi)  => pore water silicate concentration
+!   sedPoreWaterCon(:,:,ibTIC)  => pore water TIC concentration
+!   sedPoreWaterCon(:,:,ibAlk)  => pore water alkalinity concentration
+
 !   sedDecayRate(:,:,:,ibUC)   => decay rate of particulate carbon
 !   sedDecayRate(:,:,:,ibUN)   => decay rate of particulate nitrogen
 !   sedDecayRate(:,:,:,ibUP)   => decay rate of particulate phosphorous
 !   sedDecayRate(:,:,:,ibUS)   => decay rate of particulate silicon
+
 !   sedFlux(:,:,ibJNO3)  => flux of nitrate between sediment and water
 !   sedFlux(:,:,ibJNH4)  => flux of ammonium between sediment and water
 !   sedFlux(:,:,ibJPO4)  => flux of phosphate between sediment and water
 !   sedFlux(:,:,ibJSi)  => flux of silicate between sediment and water
 !   sedFlux(:,:,ibSOD)  => flux of oxygen between sediment and water
+!   sedFlux(:,:,ibJTIC)  => flux of TIC between sediment and water
+!   sedFlux(:,:,ibJAlk)  => flux of alkalinity between sediment and water
 
         real(r8), pointer :: sedPOM(:,:,:,:)
         real(r8), pointer :: sedPoreWaterCon(:,:,:)

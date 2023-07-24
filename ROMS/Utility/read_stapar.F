@@ -248,6 +248,11 @@
             CASE('Sout(idkdPAR)')
               Npts=load_l(Nval, Cval, Ngrids, Sout(idkdPAR,:))
 #  endif
+! AKB 6/16/23
+#  ifdef CARBON
+            CASE('Sout(idfgCO2)')
+              Npts=load_l(Nval, Cval, Ngrids, Sout(idfgCO2,:))
+#  endif
 #  ifdef SEDBIO
             CASE ('Sout(idbPM)')
               Npts=load_l(Nval, Cval, NPOM*Ngrids, LBPM)
@@ -667,6 +672,12 @@
             IF (Sout(idkdPAR,ng)) WRITE (out,90) Sout(idkdPAR,ng),      &
      &          'Sout(idkdPAR)',                                         &
      &          'Write out light attenuation coefficient.'
+#  endif
+! AKB 6/16/23
+#  ifdef CARBON
+            IF (Sout(idfgCO2,ng)) WRITE (out,90) Sout(idfgCO2,ng),      &
+     &          'Sout(idkdPAR)',                                        &
+     &          'Write out CO2 surface flux.'
 #  endif
 # endif
             WRITE (out,*)

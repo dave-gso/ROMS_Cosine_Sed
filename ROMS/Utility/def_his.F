@@ -1105,6 +1105,29 @@
           IF (exit_flag.ne.NoError) RETURN
         END IF
 # endif
+!
+!  Define CO2 surface flux
+!
+!  AKB 6/15/2023
+# ifdef CARBON
+        IF (Hout(idfgCO2,ng)) THEN
+          Vinfo( 1)=Vname(1,idfgCO2)
+          Vinfo( 2)=Vname(2,idfgCO2)
+          Vinfo( 3)=Vname(3,idfgCO2)
+          Vinfo(14)=Vname(4,idfgCO2)
+          Vinfo(16)=Vname(1,idtime)
+# if defined WRITE_WATER && defined MASKING
+          Vinfo(20)='mask_rho'
+# endif
+          Vinfo(22)='coordinates'
+          Aval(5)=REAL(Iinfo(1,idfgCO2,ng),r8)
+!          Aval(5)=REAL(r2dvar,r8)
+          status=def_var(ng, iNLM, HIS(ng)%ncid, HIS(ng)%Vid(idfgCO2),  &
+     &                   NF_FOUT, nvd3, t2dgrd, Aval, Vinfo, ncname)
+          IF (exit_flag.ne.NoError) RETURN
+        END IF
+# endif
+
 # ifdef LMD_SKPP
 !
 !  Define depth of surface boundary layer.
@@ -2660,6 +2683,12 @@
             got_var(idkdPAR)=.TRUE.
             HIS(ng)%Vid(idkdPAR)=var_id(i)
 # endif
+! AKB 6/15/23
+# ifdef CARBON
+          ELSE IF (TRIM(var_name(i)).eq.TRIM(Vname(1,idfgCO2))) THEN
+            got_var(idfgCO2)=.TRUE.
+            HIS(ng)%Vid(idfgCO2)=var_id(i)
+# endif
 # ifdef LMD_SKPP
           ELSE IF (TRIM(var_name(i)).eq.TRIM(Vname(1,idHsbl))) THEN
             got_var(idHsbl)=.TRUE.
@@ -3114,6 +3143,15 @@
 # ifdef OPTICS_OP1
         IF (.not.got_var(idkdPAR).and.Hout(idkdPAR,ng)) THEN
           IF (Master) WRITE (stdout,60) TRIM(Vname(1,idkdPAR)),          &
+     &                                  TRIM(ncname)
+          exit_flag=3
+          RETURN
+        END IF
+# endif
+! AKB 6/15/23
+# ifdef CARBON
+        IF (.not.got_var(idfgCO2).and.Hout(idfgCO2,ng)) THEN
+          IF (Master) WRITE (stdout,60) TRIM(Vname(1,idfgCO2)),         &
      &                                  TRIM(ncname)
           exit_flag=3
           RETURN

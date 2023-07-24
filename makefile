@@ -6,7 +6,8 @@
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #                                                                       :::
 #  ROMS/TOMS Framework Master Makefile                                  :::
-#                                                                       :::
+#  
+#  :::
 #  This makefile is designed to work only with GNU Make version 3.80 or :::
 #  higher. It can be used in any architecture provided that there is a  :::
 #  machine/compiler rules file in the  "Compilers"  subdirectory.  You  :::
@@ -58,9 +59,9 @@ $(if $(filter $(MAKE_VERSION),$(NEED_VERSION)),,        \
 #  the .h extension. For example, the upwelling application includes the
 #  "upwelling.h" header file.
 
-ROMS_APPLICATION ?= EPSCOR_UMAINE15
+#ROMS_APPLICATION ?= EPSCOR_UMAINE15
 #ROMS_APPLICATION ?= EPSCOR_UMAINE15_NOSEDBIO
-#ROMS_APPLICATION ?= EPSCOR_UMAINE15_SEDBIO
+ROMS_APPLICATION ?= EPSCOR_UMAINE15_SEDBIO
 #ROMS_APPLICATION ?= EPSCOR_UMAINE15_NOCARBON_SEDBIO
 
 #  If application header files is not located in "ROMS/Include",
@@ -68,7 +69,7 @@ ROMS_APPLICATION ?= EPSCOR_UMAINE15
 
 #MY_HEADER_DIR ?= /home/dave/projects/OSOM_Cosine_Sedbio
 #MY_HEADER_DIR ?= /home/dave/projects/OSOM_Cosine_Sedbio_mod9
-MY_HEADER_DIR ?= /home/dave/projects/OSOM_Cosine_halved
+MY_HEADER_DIR ?= /home/abaskind/runmodel
 
 #  If your application requires analytical expressions and they are
 #  not located in "ROMS/Functionals", provide an alternate directory.
@@ -150,7 +151,7 @@ MY_CPP_FLAGS ?=
 #--------------------------------------------------------------------------
 
 #     BINDIR ?= /home/dave/projects/OSOM_Cosine_Sedbio_mod9
-      BINDIR ?= /home/dave/projects/OSOM_Cosine_halved
+      BINDIR ?= /home/abaskind/runmodel
 
 #==========================================================================
 #  End of user-defined options. See also the machine-dependent include
@@ -162,7 +163,7 @@ MY_CPP_FLAGS ?=
 #--------------------------------------------------------------------------
 
 #SCRATCH_DIR ?= Build
-SCRATCH_DIR ?= /home/dave/projects/OSOM_Cosine_halved/Build
+SCRATCH_DIR ?= /home/abaskind/runmodel/Build
 #SCRATCH_DIR ?= /home/dave/projects/OSOM_Cosine_Sedbio_mod9/Build
 
  clean_list := core *.ipo $(SCRATCH_DIR)

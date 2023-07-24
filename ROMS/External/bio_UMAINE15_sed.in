@@ -124,8 +124,8 @@
 ! Logical switches (TRUE/FALSE) to activate writing of sediment biological fields                                   
 ! into HISTORY output file: [1:NBBT,Ngrids].                                                                
                                                                                                            
-Hout(idbPM) == 4*T    ! bPOC, bPON, bPOP, bSi     sediment particulate matter conc.
-Hout(idbPW) == 4*T    ! bNO3, bNH4, bPO4, bSi	   sediment pore water conc.
-Hout(idbDR) == 4*T    ! bUC, bUN, bUP, bUS        decay rates of sediment PM
-Hout(idbSF) == 5*T    ! JNO3, JNH4, JPO4, JSi, SOD  fluxes between sediment and water                                         
+Hout(idbPM) == 4*T    ! bPOC, bPON, bPOP, bSi                      sediment particulate matter conc.
+Hout(idbPW) == 6*T    ! bNO3, bNH4, bPO4, bSi, bTIC, bAlk	   sediment pore water conc.
+Hout(idbDR) == 4*T    ! bUC, bUN, bUP, bUS                         decay rates of sediment PM
+Hout(idbSF) == 7*T    ! JNO3, JNH4, JPO4, JSi, SOD, JTIC, JAlk     fluxes between sediment and water                                         
                                                                                                            

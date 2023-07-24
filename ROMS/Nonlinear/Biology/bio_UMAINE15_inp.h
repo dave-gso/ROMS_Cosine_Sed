@@ -335,6 +335,16 @@
               END IF
               Npts=load_l(Nval, Cval, Ngrids, Hout(idkdPAR,:))
 #endif
+! AKB 6/22/23
+#ifdef CARBON
+            CASE ('Hout(idfgCO2)')
+              IF (idfgCO2.eq.0) THEN
+                IF (Master) WRITE (out,30) 'idfgCO2'
+                exit_flag=5
+                RETURN
+              END IF
+              Npts=load_l(Nval, Cval, Ngrids, Hout(idfgCO2,:))
+#endif
 
 #if defined AVERAGES    || \
    (defined AD_AVERAGES && defined ADJOINT) || \
@@ -749,6 +759,7 @@
      &            'Compute kdPAR every optic_upd_fac timesteps',       &
      &            '[no dimension].'
 #endif
+
 #ifdef TS_DIF2
             DO itrc=1,NBT
               i=idbio(itrc)
@@ -848,6 +859,12 @@
             IF (Hout(idkdPAR,ng)) WRITE (out,65) Hout(idkdPAR,ng),         &
      &       'Hout(idkdPAR)',                                            &
      &       'Write out light attenuation coefficient ',TRIM(Vname(1,idkdPAR))
+#endif
+! AKB 6/22/23
+#ifdef CARBON
+            IF (Hout(idfgCO2,ng)) WRITE (out,65) Hout(idfgCO2,ng),         &
+     &       'Hout(idfgCO2)',                                            &
+     &       'Write out CO2 downward surface flux ',TRIM(Vname(1,idfgCO2))
 #endif
 
 #if defined AVERAGES    || \

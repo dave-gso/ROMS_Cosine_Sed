@@ -50,6 +50,12 @@
                 idTvar(iTIC_)=varid
               CASE ('idTvar(iTAlk)')
                 idTvar(iTAlk)=varid
+! AKB 6/22/23
+! Added in CO2 downward surface flux when CARBON is on
+! Unsure if order matters here so maybe this will throw an error
+
+              CASE ('idfgCO2')
+                idfgCO2=varid
 #endif
               CASE ('idTvar(iChl1)')
                 idTvar(iChl1)=varid
@@ -371,6 +377,10 @@
                 idbPW(ibPO4)=varid
             CASE ('idbPW(ibSi)')
                 idbPW(ibSi)=varid
+            CASE ('idbPW(ibTIC)')
+                idbPW(ibTIC)=varid
+            CASE ('idbPW(ibAlk)')
+                idbPW(ibAlk)=varid
         ! Benthic particulate matter decay rates
             CASE ('idbDR(ibUC)')
                 idbDR(ibUC)=varid
@@ -391,4 +401,8 @@
                 idbSF(ibJSi)=varid
             CASE ('idbSF(ibSOD)')
                 idbSF(ibSOD)=varid
+            CASE ('idbSF(ibJTIC)')
+                idbSF(ibJTIC)=varid
+            CASE ('idbSF(ibJAlk)')
+                idbSF(ibJAlk)=varid
 #endif
