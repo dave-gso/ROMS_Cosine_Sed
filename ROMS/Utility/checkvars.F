@@ -163,6 +163,7 @@
 ! AKB 6/21/23
 #  ifdef CARBON
         get_var(idfgCO2)=.TRUE.
+        get_var(idpCO2s)=.TRUE.
 #  endif
 # endif
 # if defined T_PASSIVE
@@ -481,6 +482,9 @@
 # ifdef CARBON
         IF (TRIM(var_name(i)).eq.TRIM(Vname(1,idfgCO2))) THEN
             have_var(idfgCO2)=.TRUE.
+        END IF
+        IF (TRIM(var_name(i)).eq.TRIM(Vname(1,idpCO2s))) THEN
+            have_var(idpCO2s)=.TRUE.
         END IF
 # endif
 #endif
@@ -822,6 +826,14 @@
      &      get_var(idfgCO2)) THEN
         IF (Master) WRITE (stdout,10) string,                         &
      &                                  TRIM(Vname(1,idfgCO2)),    &
+     &                                  TRIM(ncname)
+        exit_flag=2
+        RETURN
+      END IF
+      IF (.not.have_var(idpCO2s).and.                            &
+     &      get_var(idpCO2s)) THEN
+        IF (Master) WRITE (stdout,10) string,                         &
+     &                                  TRIM(Vname(1,idpCO2s)),    &
      &                                  TRIM(ncname)
         exit_flag=2
         RETURN

@@ -56,6 +56,8 @@
 
               CASE ('idfgCO2')
                 idfgCO2=varid
+              CASE ('idpCO2s')
+                idpCO2s=varid
 #endif
               CASE ('idTvar(iChl1)')
                 idTvar(iChl1)=varid

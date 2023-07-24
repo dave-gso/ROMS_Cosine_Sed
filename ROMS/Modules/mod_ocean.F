@@ -32,6 +32,7 @@
 !                                                                      !
 !  pH           Surface concentration of hydrogen ions.                !
 !  fgCO2        Co2 downward surface flux
+!  pCO2s        Surface pCO2 [ppmv]
 
 #if (defined BIO_UMAINE31 || defined BIO_UMAINE13 \
     || defined BIO_UMAINE15) && \
@@ -106,6 +107,7 @@
 # if (defined BIO_UMAINE31 || defined BIO_UMAINE13 || defined BIO_UMAINE15)
 # if defined CARBON
           real(r8), pointer :: fgCO2(:,:)
+          real(r8), pointer :: pCO2s(:,:)
 # endif
 # endif
 #endif
@@ -346,6 +348,7 @@
 # if (defined BIO_UMAINE31 || defined BIO_UMAINE13 || defined BIO_UMAINE15)
 # if  defined CARBON
       allocate ( OCEAN(ng) % fgCO2(LBi:UBi,LBj:UBj) )
+      allocate ( OCEAN(ng) % pCO2s(LBi:UBi,LBj:UBj) )
 # endif
 # endif
 
@@ -651,6 +654,7 @@
 # if (defined BIO_UMAINE31 || defined BIO_UMAINE13 || defined BIO_UMAINE15)
 # if defined CARBON
             OCEAN(ng) % fgCO2(i,j) = 0.0_r8
+            OCEAN(ng) % pCO2s(i,j) = 380_r8
 # endif
 # endif
           END DO
