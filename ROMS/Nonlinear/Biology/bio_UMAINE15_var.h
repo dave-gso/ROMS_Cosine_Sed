@@ -6,7 +6,7 @@
 **   See License_ROMS.txt                                             **
 ************************************************************************
 **                                                                    **
-**  Assigns metadata indices to the Nemuro ecosystem model            **
+**  Assigns metadata indices to the CoSiNE ecosystem model            **
 **  variables that are used in input and output NetCDF files.         **
 **  The metadata nformation is read from "varinfo.dat".               **
 **                                                                    **
@@ -64,6 +64,12 @@
 #ifdef OPTICS_OP1
               CASE ('idkdPAR')
                 idkdPAR=varid
+#endif
+#ifdef HAB
+              CASE ('idTvar(iHphy)')
+                idTvar(iHphy)=varid
+              CASE ('idTvar(iChl3)')
+                idTvar(iChl3)=varid
 #endif
 
 #if defined AD_SENSITIVITY   || defined IS4DVAR_SENSITIVITY || \
@@ -269,6 +275,24 @@
                 idTbry(isouth,iChl2)=varid
               CASE ('idTbry(inorth,iChl2)')
                 idTbry(inorth,iChl2)=varid
+#ifdef HAB
+              CASE ('idTbry(iwest,iChl3)')
+                idTbry(iwest,iChl3)=varid
+              CASE ('idTbry(ieast,iChl3)')
+                idTbry(ieast,iChl3)=varid
+              CASE ('idTbry(isouth,iChl3)')
+                idTbry(isouth,iChl3)=varid
+              CASE ('idTbry(inorth,iChl3)')
+                idTbry(inorth,iChl3)=varid
+              CASE ('idTbry(iwest,iHphy)')
+                idTbry(iwest,iHphy)=varid
+              CASE ('idTbry(ieast,iHphy)')
+                idTbry(ieast,iHphy)=varid
+              CASE ('idTbry(isouth,iHphy)')
+                idTbry(isouth,iHphy)=varid
+              CASE ('idTbry(inorth,iHphy)')
+                idTbry(inorth,iHphy)=varid
+#endif
 !
 !  Biological tracers point Source/Sinks (river runoff).
 !
@@ -307,6 +331,12 @@
                 idRtrc(iChl1)=varid
               CASE ('idRtrc(iChl2)')
                 idRtrc(iChl2)=varid
+# ifdef HAB
+              CASE ('idRtrc(iHphy)')
+                idRtrc(iHphy)=varid
+              CASE ('idRtrc(iChl3)')
+                idRtrc(iChl3)=varid
+# endif
                 
 #ifdef DIAGNOSTICS_BIO
 

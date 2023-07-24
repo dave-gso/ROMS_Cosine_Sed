@@ -7211,10 +7211,119 @@
 ! AKB 6/21/23
 'fgCO2'                                              ! Output
   'CO2 downward surface flux'
-  'mmol/meter-3/day'                               ! [mmol/m^3/day]
+  'mmol/meter^2/day'                               ! [mmol/m^2/day]
   'CO2 surface flux, scalar, series'
   'ocean_time'
   'idfgCO2'
   'r2dvar'
   1.0d0
 
+! HAB variables
+
+'habphytoplankton'                                           ! Input/Output
+  'hab phytoplankton biomass'
+  'millimole_nitrogen meter-3'                     ! [millimole/m3]
+  'habphytoplankton, scalar, series'
+  'ocean_time'
+  'idTvar(iHphy)'
+  'r3dvar'
+  1.0d0
+
+'chlorophyll3'                                      ! Input/Output
+  'chlorophyll concentration for habphytoplankton'
+  'milligrams_chlorophyll meter-3'                 ! [milligrams/m3]
+  'chlorophyll3, scalar, series'
+  'ocean_time'
+  'idTvar(iChl3)'
+  'r3dvar'
+  1.0d0
+
+habphytoplankton_east'                                      ! Input
+  'habphytoplankton eastern boundary condition'
+  'millimole_nitrogen meter-3'                     ! [millimole/m3]
+  'habphytoplankton_east, scalar, series'
+  'habphytoplankton_time'
+  'idTbry(ieast,iHphy)'
+  'nulvar'
+  1.0d0
+
+'habphytoplankton_west'                                      ! Input
+  'habphytoplankton western boundary condition'
+  'millimole_nitrogen meter-3'                     ! [millimole/m3]
+  'habphytoplankton_west, scalar, series'
+  'habphytoplankton_time'
+  'idTbry(iwest,iHphy)'
+  'nulvar'
+  1.0d0
+
+'habphytoplankton_south'                                     ! Input
+  'habphytoplankton southern boundary condition'
+  'millimole_nitrogen meter-3'                     ! [millimole/m3]
+  'habphytoplankton_south, scalar, series'
+  'habphytoplankton_time'
+  'idTbry(isouth,iHphy)'
+  'nulvar'
+  1.0d0
+
+'habphytoplankton_north'                                     ! Input
+  'habphytoplankton northern boundary condition'
+  'millimole_nitrogen meter-3'                     ! [millimole/m3]
+  'habphytoplankton_north, scalar, series'
+  'habphytoplankton_time'
+  'idTbry(inorth,iHphy)'
+  'nulvar'
+  1.0d0
+
+chl3_east'                                      ! Input
+  'chlorophyll for hphy eastern boundary condition'
+  'milligram meter-3'                     ! [milligram/m3]
+  'chl3_east, scalar, series'
+  'chlo_time'
+  'idTbry(ieast,iChl3)'
+  'nulvar'
+  1.0d0
+
+'chl3_west'                                      ! Input
+  'chlorophyll for hphy western boundary condition'
+  'milligram meter-3'                     ! [milligram/m3]
+  'chl3_west, scalar, series'
+  'chlo_time'
+  'idTbry(iwest,iChl3)'
+  'nulvar'
+  1.0d0
+
+'chl3_south'                                     ! Input
+  'chlorophyll for hphy southern boundary condition'
+  'milligram meter-3'                     ! [milligram/m3]
+  'chl3_south, scalar, series'
+  'chlo_time'
+  'idTbry(isouth,iChl3)'
+  'nulvar'
+  1.0d0
+
+'chl3_north'                                     ! Input
+  'chlorophyll for hphy northern boundary condition'
+  'milligram meter-3'                     ! [milligram/m3]
+  'chl3_north, scalar, series'
+  'chlo_time'
+  'idTbry(inorth,iChl3)'
+  'nulvar'
+  1.0d0
+
+'river_Hphy'                                        ! Input
+  'river runoff Hphy'
+  'millimole meter-3'                     ! [millimole/m3]
+  'river_Hphy, scalar, series'
+  'river_time'
+  'idRtrc(iHphy)'
+  'nulvar'
+  1.0d0
+
+'river_chlorophyll3'                                        ! Input
+  'river runoff chlorophyll3'
+  'milligrams chlorophyll meter-3'         ! [milligrams/m3]
+  'river_chlorophyll3, scalar, series'
+  'river_time'
+  'idRtrc(iChl3)'
+  'nulvar'
+  1.0d0
