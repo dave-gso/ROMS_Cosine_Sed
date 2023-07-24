@@ -252,6 +252,8 @@
 #  ifdef CARBON
             CASE('Sout(idfgCO2)')
               Npts=load_l(Nval, Cval, Ngrids, Sout(idfgCO2,:))
+            CASE('Sout(idpCO2s)')
+              Npts=load_l(Nval, Cval, Ngrids, Sout(idpCO2s,:))
 #  endif
 #  ifdef SEDBIO
             CASE ('Sout(idbPM)')
@@ -676,8 +678,12 @@
 ! AKB 6/16/23
 #  ifdef CARBON
             IF (Sout(idfgCO2,ng)) WRITE (out,90) Sout(idfgCO2,ng),      &
-     &          'Sout(idkdPAR)',                                        &
+     &          'Sout(idfgCO2)',                                        &
      &          'Write out CO2 surface flux.'
+            IF (Sout(idpCO2s,ng)) WRITE (out,90) Sout(idpCO2s,ng),     &
+     &          'Sout(idpCO2s)',                                       &
+     &          'Write out surface CO2 partial pressure.'
+
 #  endif
 # endif
             WRITE (out,*)

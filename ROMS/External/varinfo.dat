@@ -7218,6 +7218,15 @@
   'r2dvar'
   1.0d0
 
+! Surface CO2 partial pressure
+'pCO2s'                                              ! Output
+  'surface water CO2 partial pressure'
+  'ppmv'                               ! [ppmv]
+  'surface water CO2 partial pressure, scalar, series'
+  'ocean_time'
+  'idpCO2s'
+  'r2dvar'
+  1.0d0
 ! HAB variables
 
 'habphytoplankton'                                           ! Input/Output

@@ -487,6 +487,21 @@
      &                        varid = STA(ng)%Vid(idfgCO2))
         IF (exit_flag.ne.NoError) RETURN
       END IF
+
+      IF (Sout(idpCO2s,ng)) THEN
+        scale=1.0_r8
+        CALL extract_sta2d (ng, iNLM, Cgrid, idpCO2s, r2dvar,          &
+     &                      LBi, UBi, LBj, UBj,                        &
+     &                      scale, OCEAN(ng) % pCO2s,                  &
+     &                      Nstation(ng), Xpos, Ypos, psta)
+        CALL netcdf_put_fvar (ng, iNLM, STA(ng)%name,                  &
+     &                        TRIM(Vname(1,idpCO2s)), psta,            &
+     &                        (/1,STA(ng)%Rindex/),                    &
+     &                        (/Nstation(ng),1/),                      &
+     &                        ncid = STA(ng)%ncid,                     &
+     &                        varid = STA(ng)%Vid(idpCO2s))
+        IF (exit_flag.ne.NoError) RETURN
+      END IF
 #  endif
 #  ifdef LMD_SKPP
 !
