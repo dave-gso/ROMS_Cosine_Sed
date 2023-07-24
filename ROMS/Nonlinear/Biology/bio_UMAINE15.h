@@ -1788,6 +1788,20 @@
       real(r8) :: scco2,kwco2,phlo,phhi
       real(r8) :: co2star,dco2star,pCO2surf,dpco2,ph
       real(r8) :: dic2,alk2,po42,si2,rhos
+      real(r8) :: A,B,C,D,E,tsq
+! schmidt number polynomial coefficients (freshwater):
+      real(r8), parameter :: A0 = 1923.6_r8
+      real(r8), parameter :: B0 = -125.06_r8
+      real(r8), parameter :: C0 = 4.3773_r8
+      real(r8), parameter :: D0 = -0.085681_r8
+      real(r8), parameter :: E0 = 0.00070284_r8
+! schmidt number polynomial coefficients (35 psu):
+      real(r8), parameter :: A35 = 2116.8_r8
+      real(r8), parameter :: B35 = -136.25_r8
+      real(r8), parameter :: C35 = 4.7353_r8
+      real(r8), parameter :: D35 = -0.092307_r8
+      real(r8), parameter :: E35 = 0.0007555_r8
+      
       
        I_LOOP: DO i=Istr,Iend
 
@@ -1810,9 +1824,18 @@
 !      scco2 = 2073.1_r8 - 125.62_r8*t(i) + 3.6276_r8*t(i)*t(i)         &
 !     & - 0.043219_r8*t(i)*t(i)*t(i)
 ! 4th order polynomial from Wanninkhof 2014 (for 35 psu):
-      scco2 = 2116.8_r8 - 136.25_r8*t(i) + 4.7353_r8*t(i)*t(i)         &
-     & - 0.092307_r8*t(i)*t(i)*t(i) + 0.0007555_r8*t(i)*t(i)*t(i)*t(i)
-
+!      scco2 = 2116.8_r8 - 136.25_r8*t(i) + 4.7353_r8*t(i)*t(i)         &
+!     & - 0.092307_r8*t(i)*t(i)*t(i) + 0.0007555_r8*t(i)*t(i)*t(i)*t(i)
+! interpolate schmidt number polynomial coefficients using surface salinity:
+      A=A0+ss(i)*(A35-A0)/35.0_r8
+      B=B0+ss(i)*(B35-B0)/35.0_r8
+      C=C0+ss(i)*(C35-C0)/35.0_r8
+      D=D0+ss(i)*(D35-D0)/35.0_r8
+      E=E0+ss(i)*(E35-E0)/35.0_r8
+      tsq=t(i)*t(i)
+! schmidt number (4th order polynomial)
+      scco2= A + B*t(i) + C*tsq + D*tsq*t(i) + E*tsq*tsq
+              
       kwco2 = Kw660(i) * (660.0_r8/scco2)**0.5_r8             
 !     (in units of cm/hr)
 !  Compute the transfer velocity for CO2 in m/day
@@ -2342,6 +2365,19 @@
       real(r8), parameter :: B2 =-0.0103410_r8
       real(r8), parameter :: B3 =-0.00817083_r8
       real(r8), parameter :: C0 =-0.000000488682_r8
+      real(r8) :: A,B,C,D,E,tsq
+! schmidt number polynomial coefficients (freshwater):
+      real(r8), parameter :: A0s = 1745.1_r8
+      real(r8), parameter :: B0s = -124.34_r8
+      real(r8), parameter :: C0s = 4.8055_r8
+      real(r8), parameter :: D0s = -0.10115_r8
+      real(r8), parameter :: E0s = 0.00086842_r8
+! schmidt number polynomial coefficients (35 psu):
+      real(r8), parameter :: A35s = 1920.4_r8
+      real(r8), parameter :: B35s = -135.6_r8
+      real(r8), parameter :: C35s = 5.2122_r8
+      real(r8), parameter :: D35s = -0.10939_r8
+      real(r8), parameter :: E35s = 0.00093777_r8
 !
 !=======================================================================
 !  Determine coefficients.  If land/sea
@@ -2396,14 +2432,27 @@
 !  Computes the Schmidt number of oxygen in seawater using the
 !  formulation proposed by Keeling et al. (1998, Global Biogeochem.
 !  Cycles, 12, 141-163).  Input is temperature in deg C.
+!  DU (07/2023): changed to use Wanninkhof (2014) 4th order polynomial,
+!  using coefficients interpolated to the in situ salinity from the
+!  freshwater and 35 psu values given in that paper.
 !
 !*********************************************************************
 !
 !      sco2 = 1638.0_r8 - 81.83_r8*t(i) +                               &
 !     &       1.483_r8*t(i)**2 - 0.008004_r8*t(i)**3
 ! DU (7/11/23): changed to use Wanninkhof (2014) relation (for 35 psu)
-       sco2 = 1920.4_r8 - 135.6_r8*t(i) + 5.2122_r8*t(i)**2             &
-      &       - 0.10939_r8*t(i)**3 + 0.00093777_r8*t(i)**4
+!       sco2 = 1920.4_r8 - 135.6_r8*t(i) + 5.2122_r8*t(i)**2             &
+!      &       - 0.10939_r8*t(i)**3 + 0.00093777_r8*t(i)**4
+! interpolate schmidt number polynomial coefficients using surface salinity
+! using wanninkhof (2014) polynomials for 35 psu and 0 psu:
+      A=A0s+S(i)*(A35s-A0s)/35.0_r8
+      B=B0s+S(i)*(B35s-B0s)/35.0_r8
+      C=C0s+S(i)*(C35s-C0s)/35.0_r8
+      D=D0s+S(i)*(D35s-D0s)/35.0_r8
+      E=E0s+S(i)*(E35s-E0s)/35.0_r8
+      tsq=T(i)*T(i)
+! schmidt number (4th order polynomial)
+      sco2= A + B*T(i) + C*tsq + D*tsq*T(i) + E*tsq*tsq
 
 !
 !  Compute the transfer velocity for O2 in m/s

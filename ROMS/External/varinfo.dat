@@ -7227,38 +7227,38 @@ habphytoplankton_east'                                      ! Input
   'nulvar'
   1.0d0
 
-chlorophyll3_east'                                      ! Input
-  'chlorophyll3 eastern boundary condition'
-  'millimole_nitrogen meter-3'                     ! [millimole/m3]
-  'chlorophyll3_east, scalar, series'
-  'chlorophyll3_time'
+chl3_east'                                      ! Input
+  'chlorophyll for hphy eastern boundary condition'
+  'milligram meter-3'                     ! [milligram/m3]
+  'chl3_east, scalar, series'
+  'chlo_time'
   'idTbry(ieast,iChl3)'
   'nulvar'
   1.0d0
 
-'chlorophyll3_west'                                      ! Input
-  'chlorophyll3 western boundary condition'
-  'millimole_nitrogen meter-3'                     ! [millimole/m3]
-  'chlorophyll3_west, scalar, series'
-  'chlorophyll3_time'
+'chl3_west'                                      ! Input
+  'chlorophyll for hphy western boundary condition'
+  'milligram meter-3'                     ! [milligram/m3]
+  'chl3_west, scalar, series'
+  'chlo_time'
   'idTbry(iwest,iChl3)'
   'nulvar'
   1.0d0
 
-'chlorophyll3_south'                                     ! Input
-  'chlorophyll3 southern boundary condition'
-  'millimole_nitrogen meter-3'                     ! [millimole/m3]
-  'chlorophyll3_south, scalar, series'
-  'chlorophyll3_time'
+'chl3_south'                                     ! Input
+  'chlorophyll for hphy southern boundary condition'
+  'milligram meter-3'                     ! [milligram/m3]
+  'chl3_south, scalar, series'
+  'chlo_time'
   'idTbry(isouth,iChl3)'
   'nulvar'
   1.0d0
 
-'chlorophyll3_north'                                     ! Input
-  'chlorophyll3 northern boundary condition'
-  'millimole_nitrogen meter-3'                     ! [millimole/m3]
-  'chlorophyll3_north, scalar, series'
-  'chlorophyll3_time'
+'chl3_north'                                     ! Input
+  'chlorophyll for hphy northern boundary condition'
+  'milligram meter-3'                     ! [milligram/m3]
+  'chl3_north, scalar, series'
+  'chlo_time'
   'idTbry(inorth,iChl3)'
   'nulvar'
   1.0d0
