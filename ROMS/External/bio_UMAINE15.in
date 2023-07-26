@@ -376,7 +376,7 @@ Hout(idTvar) == 15*T    ! NO3, ...           biological tracer
 Hout(idTsur) == 15*F    ! NO3_sflux, ...     surface tracer flux                                           
 Hout(idkdPAR) == T      ! AKB 6/22/23
 Hout(idfgCO2) == T      ! AKB 6/22/23
-                                                                                                           
+Hout(idpCO2s) == T      ! AKB 7/23/23                                                                                                           
 ! Logical switches (TRUE/FALSE) to activate writing of time-averaged fields                                
 ! into AVERAGE output file: [1:NBT,Ngrids].                                                                
                                                                                                            

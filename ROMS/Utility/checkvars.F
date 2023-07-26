@@ -160,7 +160,6 @@
 #  ifdef OPTICS_OP1
         get_var(idkdPAR)=.TRUE.
 #  endif
-
 # endif
 # if defined T_PASSIVE
 #  if defined ANA_PASSIVE
@@ -474,7 +473,6 @@
             have_var(idkdPAR)=.TRUE.
         END IF
 # endif
-
 #endif
       END DO
 !
@@ -808,7 +806,6 @@
         RETURN
       END IF
 # endif
-
 #endif
 !
   10  FORMAT (/,a,'CHECKVARS - unable to find model variable: ',a,      &

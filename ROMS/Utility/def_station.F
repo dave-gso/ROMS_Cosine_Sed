@@ -520,6 +520,19 @@
      &                   SetParAccess = .FALSE.)
           IF (exit_flag.ne.NoError) RETURN
         END IF
+
+        IF (Sout(idpCO2s,ng)) THEN
+          Vinfo( 1)=Vname(1,idpCO2s)
+          Vinfo( 2)=Vname(2,idpCO2s)
+          Vinfo( 3)=Vname(3,idpCO2s)
+          Vinfo(14)=Vname(4,idpCO2s)
+          Vinfo(16)=Vname(1,idtime)
+          status=def_var(ng, iNLM, STA(ng)%ncid, STA(ng)%Vid(idpCO2s), &
+     &                   NF_FOUT, 2, pgrd, Aval, Vinfo, ncname,        &
+     &                   SetFillVal = .TRUE.,                          &
+     &                   SetParAccess = .FALSE.)
+          IF (exit_flag.ne.NoError) RETURN
+        END IF
 #  endif
 #  ifdef LMD_SKPP
 !
@@ -1681,6 +1694,9 @@
           ELSE IF (TRIM(var_name(i)).eq.TRIM(Vname(1,idfgCO2))) THEN
             got_var(idfgCO2)=.TRUE.
             STA(ng)%Vid(idfgCO2)=var_id(i)
+          ELSE IF (TRIM(var_name(i)).eq.TRIM(Vname(1,idpCO2s))) THEN
+            got_var(idpCO2s)=.TRUE.
+            STA(ng)%Vid(idpCO2s)=var_id(i)
 #  endif
 #  ifdef LMD_SKPP
           ELSE IF (TRIM(var_name(i)).eq.TRIM(Vname(1,idHsbl))) THEN
@@ -2049,6 +2065,13 @@
 #  ifdef CARBON
         IF (.not.got_var(idfgCO2).and.Sout(idfgCO2,ng)) THEN
           IF (Master) WRITE (stdout,60) TRIM(Vname(1,idfgCO2)),         &
+     &                                  TRIM(ncname)
+          exit_flag=3
+          RETURN
+        END IF
+
+        IF (.not.got_var(idpCO2s).and.Sout(idpCO2s,ng)) THEN
+          IF (Master) WRITE (stdout,60) TRIM(Vname(1,idpCO2s)),        &
      &                                  TRIM(ncname)
           exit_flag=3
           RETURN
