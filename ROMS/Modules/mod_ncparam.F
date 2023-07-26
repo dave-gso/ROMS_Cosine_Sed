@@ -355,6 +355,7 @@
 ! AKB 6/22/23
 #ifdef CARBON
         integer  :: idfgCO2       ! CO2 surface flux
+        integer  :: idpCO2s       ! Surface pCO2
 #endif 
 !
 !  Last used variable ID counter.

@@ -344,6 +344,13 @@
                 RETURN
               END IF
               Npts=load_l(Nval, Cval, Ngrids, Hout(idfgCO2,:))
+            CASE ('Hout(idpCO2s)')
+              IF (idpCO2s.eq.0) THEN
+                IF (Master) WRITE (out,30) 'idpCO2s'
+                exit_flag=5
+                RETURN
+              END IF
+              Npts=load_l(Nval, Cval, Ngrids, Hout(idpCO2s,:))
 #endif
 
 #if defined AVERAGES    || \
@@ -865,6 +872,9 @@
             IF (Hout(idfgCO2,ng)) WRITE (out,65) Hout(idfgCO2,ng),         &
      &       'Hout(idfgCO2)',                                            &
      &       'Write out CO2 downward surface flux ',TRIM(Vname(1,idfgCO2))
+            IF (Hout(idpCO2s,ng)) WRITE (out,65) Hout(idpCO2s,ng),         &
+     &       'Hout(idpCO2s)',                                            &
+     &       'Write out surface partial pressure of CO2. ',TRIM(Vname(1,idpCO2s))
 #endif
 
 #if defined AVERAGES    || \

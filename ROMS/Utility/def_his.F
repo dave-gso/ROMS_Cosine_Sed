@@ -1126,6 +1126,23 @@
      &                   NF_FOUT, nvd3, t2dgrd, Aval, Vinfo, ncname)
           IF (exit_flag.ne.NoError) RETURN
         END IF
+
+        IF (Hout(idpCO2s,ng)) THEN
+          Vinfo( 1)=Vname(1,idpCO2s)
+          Vinfo( 2)=Vname(2,idpCO2s)
+          Vinfo( 3)=Vname(3,idpCO2s)
+          Vinfo(14)=Vname(4,idpCO2s)
+          Vinfo(16)=Vname(1,idtime)
+# if defined WRITE_WATER && defined MASKING
+          Vinfo(20)='mask_rho'
+# endif
+          Vinfo(22)='coordinates'
+          Aval(5)=REAL(Iinfo(1,idpCO2s,ng),r8)
+!          Aval(5)=REAL(r2dvar,r8)
+          status=def_var(ng, iNLM, HIS(ng)%ncid, HIS(ng)%Vid(idpCO2s), &
+     &                   NF_FOUT, nvd3, t2dgrd, Aval, Vinfo, ncname)
+          IF (exit_flag.ne.NoError) RETURN
+        END IF
 # endif
 
 # ifdef LMD_SKPP
@@ -2688,6 +2705,9 @@
           ELSE IF (TRIM(var_name(i)).eq.TRIM(Vname(1,idfgCO2))) THEN
             got_var(idfgCO2)=.TRUE.
             HIS(ng)%Vid(idfgCO2)=var_id(i)
+          ELSE IF (TRIM(var_name(i)).eq.TRIM(Vname(1,idpCO2s))) THEN
+            got_var(idpCO2s)=.TRUE.
+            HIS(ng)%Vid(idpCO2s)=var_id(i)
 # endif
 # ifdef LMD_SKPP
           ELSE IF (TRIM(var_name(i)).eq.TRIM(Vname(1,idHsbl))) THEN
@@ -3152,6 +3172,13 @@
 # ifdef CARBON
         IF (.not.got_var(idfgCO2).and.Hout(idfgCO2,ng)) THEN
           IF (Master) WRITE (stdout,60) TRIM(Vname(1,idfgCO2)),         &
+     &                                  TRIM(ncname)
+          exit_flag=3
+          RETURN
+        END IF
+
+        IF (.not.got_var(idpCO2s).and.Hout(idpCO2s,ng)) THEN
+          IF (Master) WRITE (stdout,60) TRIM(Vname(1,idpCO2s)),        &
      &                                  TRIM(ncname)
           exit_flag=3
           RETURN
