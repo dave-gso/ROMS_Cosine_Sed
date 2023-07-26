@@ -160,10 +160,7 @@
 #  ifdef OPTICS_OP1
         get_var(idkdPAR)=.TRUE.
 #  endif
-! AKB 6/21/23
-#  ifdef CARBON
-        get_var(idfgCO2)=.TRUE.
-#  endif
+
 # endif
 # if defined T_PASSIVE
 #  if defined ANA_PASSIVE
@@ -477,12 +474,7 @@
             have_var(idkdPAR)=.TRUE.
         END IF
 # endif
-! AKB 6/21/23
-# ifdef CARBON
-        IF (TRIM(var_name(i)).eq.TRIM(Vname(1,idfgCO2))) THEN
-            have_var(idfgCO2)=.TRUE.
-        END IF
-# endif
+
 #endif
       END DO
 !
@@ -816,17 +808,7 @@
         RETURN
       END IF
 # endif
-# ifdef CARBON
-! AKB 6/21/23
-      IF (.not.have_var(idfgCO2).and.                            &
-     &      get_var(idfgCO2)) THEN
-        IF (Master) WRITE (stdout,10) string,                         &
-     &                                  TRIM(Vname(1,idfgCO2)),    &
-     &                                  TRIM(ncname)
-        exit_flag=2
-        RETURN
-      END IF
-# endif
+
 #endif
 !
   10  FORMAT (/,a,'CHECKVARS - unable to find model variable: ',a,      &
