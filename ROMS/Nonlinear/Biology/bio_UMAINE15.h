@@ -51,10 +51,12 @@
 !                                                                      !
 !  Last: PENG XIU 10/2016                                                !
 !                                                                      !
-!  Options you can use: OXYGEN, CARBON, SINK_OP1, SINK_OP2             !
+!  Options you can use: OXYGEN, CARBON,			             !
 !                       TALK_NONCONSERV,DIAGNOSTICS_BIO
 !  DU: 8/9/2021: removed SINK_OP selection. using SINK_OP2 only         !
 !  DU: 6/9/2023: adding 3rd phytoplankton group representing HAB phyto !
+!  DU: 7/15/2025: removing all SINK_OP*, since there is only one 	!
+!      sinking algorithm
 !***********************************************************************                                
 !
       USE mod_param

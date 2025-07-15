@@ -1365,20 +1365,6 @@
       is=LEN_TRIM(Coptions)+1
       Coptions(is:is+8)=' OXYGEN,'
 #endif
-#if defined SINK_OP1 && (defined BIO_UMAINE31 || defined BIO_UMAINE13 || \
-     defined BIO_UMAINE15)                                                              
-       IF (Master) WRITE (stdout,20) 'Sinking flux',                    &                            
-     &   'Use option: 1.'                                                                       
-      is=LEN_TRIM(Coptions)+1                                                                         
-      Coptions(is:is+10)=' SINK_OP1,'                                                                    
-#endif
-#if defined SINK_OP2 && (defined BIO_UMAINE31 || defined BIO_UMAINE13 || \
-     defined BIO_UMAINE15)                                                              
-       IF (Master) WRITE (stdout,20) 'Sinking flux',                    &
-     &   'Use option: 2.'      
-      is=LEN_TRIM(Coptions)+1
-      Coptions(is:is+10)=' SINK_OP2,'                                                                 
-#endif
 #if defined TALK_NONCONSERV && (defined BIO_UMAINE31 || \
     defined BIO_UMAINE13 || defined BIO_UMAINE15)                                                              
        IF (Master) WRITE (stdout,20) 'TALK_NONCONSERV',                    &
