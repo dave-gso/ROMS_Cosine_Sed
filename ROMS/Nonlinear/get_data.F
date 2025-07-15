@@ -332,6 +332,18 @@
 #  endif
      &                FORCES(ng) % srflxG)
       IF (exit_flag.ne.NoError) RETURN
+
+!
+#  if defined BIO_UMAINE15 && defined OPTICS_OP1 && defined READ_ZENITH
+      CALL get_2dfld (ng, iNLM, idzang, ncFRCid(idzang,ng),             &
+     &                nFfiles(ng), FRC(1,ng), update(1),                &
+     &                LBi, UBi, LBj, UBj, 2, 1,                         &
+#   ifdef MASKING
+     &                GRID(ng) % rmask,                                 &
+#   endif
+     &                FORCES(ng) % zenith_angG)
+    IF (exit_flag.ne.NoError) RETURN
+#  endif
 # endif
 
 # if defined BULK_FLUXES && !defined LONGWAVE && !defined LONGWAVE_OUT

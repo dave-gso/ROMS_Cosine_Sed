@@ -55,6 +55,39 @@
      &               SetParAccess = .FALSE.)
       IF (exit_flag.ne.NoError) RETURN
 
+#ifdef PHYTO_RESP
+	Vinfo( 1)='rrb1'
+	Vinfo( 2)='basal respiration rate of small phyto.'
+	Vinfo( 3)='day-1'
+	status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+	IF (exit_flag.ne.NoError) RETURN
+
+	Vinfo( 1)='rrb2'
+	Vinfo( 2)='basal respiration rate of diatom'
+	Vinfo( 3)='day-1'
+	status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+	IF (exit_flag.ne.NoError) RETURN
+
+	Vinfo( 1)='rrg1'
+	Vinfo( 2)='growth-dependent respiration rate of small phyto.'
+	Vinfo( 3)='unitless'
+	status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+	IF (exit_flag.ne.NoError) RETURN
+
+	Vinfo( 1)='rrg2'
+	Vinfo( 2)='growth-dependent respiration rate of diatom'
+	Vinfo( 3)='unitless'
+	status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+	IF (exit_flag.ne.NoError) RETURN
+#endif
       Vinfo( 1)='beta1'
       Vinfo( 2)='microzooplankton maximum grazing rate'
       Vinfo( 3)='day-1'
@@ -281,7 +314,15 @@
       IF (exit_flag.ne.NoError) RETURN
 
       Vinfo( 1)='bgamma5'
-      Vinfo( 2)='decay rate of detritus'
+      Vinfo( 2)='decay rate of nitrogenous detritus'
+      Vinfo( 3)='day-1'
+      status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+      IF (exit_flag.ne.NoError) RETURN
+
+      Vinfo( 1)='bgamma5s'
+      Vinfo( 2)='decay rate of silicious detritus'
       Vinfo( 3)='day-1'
       status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
      &               1, (/0/), Aval, Vinfo, ncname,                     &
@@ -289,15 +330,15 @@
       IF (exit_flag.ne.NoError) RETURN
 
       Vinfo( 1)='bgamma6'
-      Vinfo( 2)=' '
-      Vinfo( 3)=' '
+      Vinfo( 2)='aggregation rate'
+      Vinfo( 3)='day-1'
       status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
      &               1, (/0/), Aval, Vinfo, ncname,                     &
      &               SetParAccess = .FALSE.)
       IF (exit_flag.ne.NoError) RETURN
 
       Vinfo( 1)='bgamma7'
-      Vinfo( 2)='nitrafication rate'
+      Vinfo( 2)='nitrification rate'
       Vinfo( 3)='day-1'
       status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
      &               1, (/0/), Aval, Vinfo, ncname,                     &
@@ -424,7 +465,23 @@
      &               1, (/0/), Aval, Vinfo, ncname,                     &
      &               SetParAccess = .FALSE.)
       IF (exit_flag.ne.NoError) RETURN
+# ifdef PHYTO_RESP
+	Vinfo( 1)='rrb3'
+	Vinfo( 2)='basal respiration rate of HAB phyto'
+	Vinfo( 3)='day-1'
+	status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+	IF (exit_flag.ne.NoError) RETURN
 
+	Vinfo( 1)='rrg3'
+	Vinfo( 2)='growth-dependent respiration rate of HAB phyto.'
+	Vinfo( 3)='unitless'
+	status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+	IF (exit_flag.ne.NoError) RETURN
+# endif
       Vinfo( 1)='amaxs3'
       Vinfo( 2)='initial slope of P-I curve of HAB phytoplankton'
       Vinfo( 3)='meter2 watts-1 day-1'
@@ -525,6 +582,14 @@
 #ifdef SEDBIO
       Vinfo( 1)='bUmax'
       Vinfo( 2)='Maximum POM decay rate'
+      Vinfo( 3)='day-1'
+      status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/sedbiodim/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+      IF (exit_flag.ne.NoError) return
+
+      Vinfo( 1)='bUmaxSi'
+      Vinfo( 2)='Maximum particulate silicate decay rate'
       Vinfo( 3)='day-1'
       status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
      &               1, (/sedbiodim/), Aval, Vinfo, ncname,                     &
@@ -685,3 +750,59 @@
      &               SetParAccess = .FALSE.)
       IF (exit_flag.ne.NoError) return
 #endif
+
+	Vinfo( 1)='q10_phyto_prod'
+	Vinfo( 2)='Q10 for phytoplankton production'
+	Vinfo( 3)='nondimensional'
+	status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+	IF (exit_flag.ne.NoError) return
+
+	Vinfo( 1)='q10_phyto_resp'
+	Vinfo( 2)='Q10 for phytoplankton respiration'
+	Vinfo( 3)='nondimensional'
+	status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+	IF (exit_flag.ne.NoError) return
+
+	Vinfo( 1)='q10_bact_remin'
+	Vinfo( 2)='Q10 for bacterial remineralization'
+	Vinfo( 3)='nondimensional'
+	status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+	IF (exit_flag.ne.NoError) return
+
+	Vinfo( 1)='q10_opal_dissol'
+	Vinfo( 2)='Q10 for opal dissolution'
+	Vinfo( 3)='nondimensional'
+	status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+	IF (exit_flag.ne.NoError) return
+
+	Vinfo( 1)='q10_zoopl_resp'
+	Vinfo( 2)='Q10 for zooplankton respiration'
+	Vinfo( 3)='nondimensional'
+	status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+	IF (exit_flag.ne.NoError) return
+
+	Vinfo( 1)='q10_zoopl_graz'
+	Vinfo( 2)='Q10 for zooplankton grazing'
+	Vinfo( 3)='nondimensional'
+	status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+	IF (exit_flag.ne.NoError) return
+
+	Vinfo( 1)='q10_nitrif'
+	Vinfo( 2)='Q10 for nitrification'
+	Vinfo( 3)='nondimensional'
+	status=def_var(ng, model, ncid, varid, NF_TYPE,                   &
+     &               1, (/0/), Aval, Vinfo, ncname,                     &
+     &               SetParAccess = .FALSE.)
+	IF (exit_flag.ne.NoError) return

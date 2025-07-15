@@ -857,6 +857,7 @@
 !
       DO itrc=1,NT(ng)
         IF (Hout(idTvar(itrc),ng)) THEN
+!        write(*,*)'itrc =',itrc,'write his. ',TRIM(Vname(1,idTvar(itrc)))
           scale=1.0_r8
           gtype=gfactor*r3dvar
           status=nf_fwrite3d(ng, iNLM, HIS(ng)%ncid, HIS(ng)%Tid(itrc), &

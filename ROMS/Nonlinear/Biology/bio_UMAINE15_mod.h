@@ -6,7 +6,15 @@
 !   gmaxs1   Maximum specific growth rate of small phytoplankton       !
 !              [1/day]                                                 !
 !   gmaxs2   Maximum specific growth rate of diatom [1/day]            !
-!   gmaxs3   Maximum specific growth rate of HAB phyto [1/day]         !
+!   gmaxs3   Maximum specific growth rate of HAB phyto [1/day] 	     !
+!! only if PHYTO_RESP defined:
+!   rrb1	 Basal respiration rate of small phytoplankton	[1/day]    !
+!   rrb2	 Basal respiration rate of diatom	[1/day]    		     !
+!   rrb3	 Basal respiration rate of HAB phytoplankton	[1/day]    !
+!   rrg1	 Growth-dependent respiration rate of small phyto [no unit]!
+!   rrg2	 Growth-dependent respiration rate of diatom [no unit]     !
+!   rrg3	 Growth-dependent respiration rate of HAB phyto [no unit]  !
+!!
 !   beta1    Microzooplankton maximum grazing rate [1/day]             !
 !   beta2    Mesozooplankton maximum grazing rate [1/day]              !
 !   akz1     Half saturation constant for microzooplankton grazing     !
@@ -70,7 +78,8 @@
 !   bgamma3   Death rate of small phytoplankton [1/day].               !
 !   bgamma4   Death rate of large phytoplankton [1/day].               !
 !   bgamma4s3   Death rate of HAB phytoplankton [1/day].               !
-!   bgamma5   Decay rate of detritus [1/day].                          !
+!   bgamma5   Decay rate of detritus (nitrogenous) [1/day].            !
+!   bgamma5s   Decay rate of detritus (silicious) [1/day].             !
 !   bgamma6                                                            !
 !   bgamma7   Nitrafication rate [1/day].                              !
 !   wsd      Sinking velocity of detritus [m/day].                     !
@@ -97,6 +106,13 @@
 #ifdef OPTICS_OP1
 !   optic_upd_fac  number of timesteps between updates of kdPAR       !
 #endif
+!   q10_phyto_prod	Q10 factor for phytoplankton production
+!   q10_phyto_resp	Q10 factor for phytoplankton respiration
+!   q10_bact_remin	Q10 factor for bacterial remineralization
+!   q10_opal_dissol	Q10 factor for opal dissolution
+!   q10_zoopl_resp	Q10 factor for zooplankton respiration
+!   q10_zoopl_graz	Q10 factor for zooplankton grazing
+!   q10_nitrif		Q10 factor for nitrification
 !   By: Xiu and Geng 9/2016                                    !
 !=======================================================================
 !
@@ -143,6 +159,21 @@
       integer  :: iCOfx                       ! air-sea CO2 flux
       integer  :: ipCO2                       ! partial pressure of CO2
       integer  :: iO2fx                       ! air-sea O2 flux
+# ifdef SEDBIO
+      integer  :: ibNO3fx                     ! benthic NO3 flux
+      integer  :: ibNH4fx                     ! benthic NH4 flux
+      integer  :: ibPO4fx                     ! benthic PO4 flux
+      integer  :: ibSiO2fx                    ! benthic SiO2 flux
+      integer  :: ibPONfx                     ! flux of PON to sediment
+      integer  :: ibPSifx                     ! flux of PSi to sediment
+#  ifdef CARBON
+      integer  :: ibTICfx                     ! benthic TIC flux
+      integer  :: ibAlkfx                     ! benthic Alk flux
+#  endif
+#  ifdef OXYGEN
+      integer  :: ibO2fx                     ! benthic O2 flux
+#  endif
+# endif
 !
 !  Biological 3D diagnostic variable IDs.
 !
@@ -151,6 +182,15 @@
       integer  :: iPPro1 = 1                   ! primary productivity for s1
       integer  :: iPPro2 = 2                   ! primary productivity for s2
       integer  :: iNO3u = 3                   ! NO3 uptake
+# ifdef OXYGEN
+      integer  :: iO2pr = 4                    ! O2 production
+      integer  :: initri = 5                   ! O2 loss, nitrification
+      integer  :: iremin = 6                   ! O2 loss, remineralization
+      integer  :: izoopl = 7                   ! O2 loss, zooplankton
+#  ifdef PHYTO_RESP
+	integer  :: iphyres = 8			     ! O2 loss, phytoplankton respiration
+#  endif
+# endif
 #endif
 
 
@@ -160,6 +200,12 @@
       real(r8), allocatable :: reg2(:)            ! 1/day
       real(r8), allocatable :: gmaxs1(:)          ! 1/day
       real(r8), allocatable :: gmaxs2(:)          ! 1/day
+#ifdef PHYTO_RESP
+	real(r8), allocatable :: rrb1(:)		  ! 1/day
+	real(r8), allocatable :: rrb2(:)		  ! 1/day
+	real(r8), allocatable :: rrg1(:)		  ! nondimensional
+	real(r8), allocatable :: rrg2(:)		  ! nondimensional
+#endif
       real(r8), allocatable :: beta1(:)           ! 1/day
       real(r8), allocatable :: beta2(:)           ! 1/day
       real(r8), allocatable :: akz1(:)            ! mmol_N/m3
@@ -189,7 +235,8 @@
       real(r8), allocatable :: bgamma3(:)         ! 1/day
       real(r8), allocatable :: bgamma4(:)         ! 1/day
       real(r8), allocatable :: bgamma5(:)         ! 1/day
-      real(r8), allocatable :: bgamma6(:)         ! 
+      real(r8), allocatable :: bgamma5s(:)        ! 1/day
+      real(r8), allocatable :: bgamma6(:)         !
       real(r8), allocatable :: bgamma7(:)         ! 1/day
       real(r8), allocatable :: wsd(:)             ! m/day
       real(r8), allocatable :: wsdsi(:)           ! m/day
@@ -209,6 +256,10 @@
 #ifdef HAB
       real(r8), allocatable :: gmaxs3(:)          ! 1/day
       real(r8), allocatable :: amaxs3(:)          ! 1/(Watts/m2)/day
+#  ifdef PHYTO_RESP
+	real(r8), allocatable :: rrb3(:)		  ! 1/day
+	real(r8), allocatable :: rrg3(:)		  ! nondimensional
+#  endif
       real(r8), allocatable :: parsats3(:)        ! Watts/m2
       real(r8), allocatable :: pis3(:)            ! m3/mmol_N
       real(r8), allocatable :: akno3s3(:)         ! mmol_N/m3
@@ -224,10 +275,27 @@
 #ifdef OPTICS_OP1
       real(r8), allocatable :: optic_upd_fac(:)    ! nondimensional
 #endif
+	real(r8), allocatable :: q10_phyto_prod(:)	   ! nondimensional
+	real(r8), allocatable :: q10_phyto_resp(:)	   ! nondimensional
+	real(r8), allocatable :: q10_bact_remin(:)	   ! nondimensional
+	real(r8), allocatable :: q10_opal_dissol(:)	   ! nondimensional
+	real(r8), allocatable :: q10_zoopl_resp(:)	   ! nondimensional
+	real(r8), allocatable :: q10_zoopl_graz(:)	   ! nondimensional
+	real(r8), allocatable :: q10_nitrif(:)		   ! nondimensional
+! a1-a7 are the constants in Q10=exp(a*(T-Tref)) which are computed
+!	  from the input q10 values
+	real(r8), allocatable :: a1(:)			   ! 1/degC
+	real(r8), allocatable :: a2(:)			   ! 1/degC
+	real(r8), allocatable :: a3(:)			   ! 1/degC
+	real(r8), allocatable :: a4(:)			   ! 1/degC
+	real(r8), allocatable :: a5(:)			   ! 1/degC
+      real(r8), allocatable :: a6(:)			   ! 1/degC
+	real(r8), allocatable :: a7(:)			   ! 1/degC
 
 #ifdef SEDBIO
 ! benthic biology parameters
       real(r8), allocatable :: bUmax(:,:)
+      real(r8), allocatable :: bUmaxSi(:,:)
       real(r8), allocatable :: bdep(:)
       real(r8), allocatable :: balpha(:)
       real(r8), allocatable :: bw(:)
@@ -287,23 +355,60 @@
 #endif
 #if defined DIAGNOSTICS && defined DIAGNOSTICS_BIO
       NDbio3d=3
-      NDbio2d=0
-# ifdef CARBON                                                                                        
-      NDbio2d=NDbio2d+2                                                                               
-# endif                                                                                               
-# ifdef OXYGEN                                                                                        
-      NDbio2d=NDbio2d+1                                                                               
+# ifdef OXYGEN
+        NDbio3d=NDbio3d+4
+#  ifdef PHYTO_RESP
+	NDbio3d=NDbio3d+1
+#  endif
 # endif
 
-     ic=0                                                                                            
-# ifdef CARBON                                                                                        
-      iCOfx=ic+1                                                                                      
-      ipCO2=ic+2                                                                                      
-      ic=ic+2                                                                                         
+      NDbio2d=0
+! benthic flux diagnostics:
+# ifdef SEDBIO
+      NDbio2d=NDbio2d+6
+#  ifdef CARBON
+      NDbio2d=NDbio2d+2
+#  endif
+#  ifdef OXYGEN
+      NDbio2d=NDbio2d+1
+#  endif
+# endif
+
+# ifdef CARBON
+      NDbio2d=NDbio2d+2
 # endif                                                                                               
-# ifdef OXYGEN                                                                                        
-      iO2fx=ic+1                                                                                      
-# endif                                                                                               
+# ifdef OXYGEN
+      NDbio2d=NDbio2d+1
+# endif
+
+     ic=0
+# ifdef SEDBIO
+      ibNO3fx=ic+1
+      ibNH4fx=ic+2
+      ibPO4fx=ic+3
+      ibSiO2fx=ic+4
+      ibPONfx=ic+5
+      ibPSifx=ic+6
+      ic=ic+6
+# endif
+# ifdef CARBON
+      iCOfx=ic+1
+      ipCO2=ic+2
+      ic=ic+2
+#  ifdef SEDBIO
+      ibTICfx=ic+1
+      ibAlkfx=ic+2
+      ic=ic+2
+#  endif
+# endif
+# ifdef OXYGEN
+      iO2fx=ic+1
+      ic=ic+1
+#  ifdef SEDBIO
+      ibO2fx=ic+1
+      ic=ic+1
+#  endif
+# endif
 #endif
 #ifdef SEDBIO
 ! total number of sediment biology variables
@@ -327,6 +432,20 @@
       IF (.not.allocated(gmaxs2)) THEN
         allocate ( gmaxs2(Ngrids) )
       END IF
+#ifdef PHYTO_RESP
+	IF (.not.allocated(rrb1)) THEN
+	  allocate ( rrb1(Ngrids) )
+	END IF
+	IF (.not.allocated(rrb2)) THEN
+	  allocate ( rrb2(Ngrids) )
+	END IF
+	IF (.not.allocated(rrg1)) THEN
+	  allocate ( rrg1(Ngrids) )
+	END IF
+	IF (.not.allocated(rrg2)) THEN
+	  allocate ( rrg2(Ngrids) )
+	END IF
+#endif
       IF (.not.allocated(beta1)) THEN
         allocate ( beta1(Ngrids) )
       END IF
@@ -414,6 +533,9 @@
       IF (.not.allocated(bgamma5)) THEN
         allocate ( bgamma5(Ngrids) )
       END IF
+      IF (.not.allocated(bgamma5s)) THEN
+        allocate ( bgamma5s(Ngrids) )
+      END IF
       IF (.not.allocated(bgamma6)) THEN
         allocate ( bgamma6(Ngrids) )
       END IF
@@ -472,6 +594,14 @@
       IF (.not.allocated(amaxs3)) THEN
         allocate ( amaxs3(Ngrids) )
       END IF
+#  ifdef PHYTO_RESP
+	IF (.not.allocated(rrb3)) THEN
+	  allocate ( rrb3(Ngrids) )
+	END IF
+	IF (.not.allocated(rrg3)) THEN
+	  allocate ( rrg3(Ngrids) )
+	END IF
+#  endif
       IF (.not.allocated(parsats3)) THEN
         allocate ( parsats3(Ngrids) )
       END IF
@@ -514,6 +644,9 @@
 #ifdef SEDBIO
       if (.not.allocated(bUmax)) THEN
         allocate ( bUmax(Ngrids,nspc) )
+      END IF
+      if (.not.allocated(bUmaxSi)) THEN
+        allocate ( bUmaxSi(Ngrids,nspc) )
       END IF
       if (.not.allocated(bdep)) THEN
         allocate ( bdep(Ngrids) )
@@ -570,7 +703,48 @@
         allocate ( bfs(Ngrids,nspc) )
       END IF
 #endif
-
+	IF (.not.allocated(q10_phyto_prod)) THEN
+	  allocate ( q10_phyto_prod(Ngrids) )
+	END IF
+	IF (.not.allocated(q10_phyto_resp)) THEN
+	  allocate ( q10_phyto_resp(Ngrids) )
+	END IF
+	IF (.not.allocated(q10_bact_remin)) THEN
+	  allocate ( q10_bact_remin(Ngrids) )
+	END IF
+	IF (.not.allocated(q10_opal_dissol)) THEN
+	  allocate ( q10_opal_dissol(Ngrids) )
+	END IF
+	IF (.not.allocated(q10_zoopl_resp)) THEN
+	  allocate ( q10_zoopl_resp(Ngrids) )
+	END IF
+	IF (.not.allocated(q10_zoopl_graz)) THEN
+	  allocate ( q10_zoopl_graz(Ngrids) )
+	END IF
+	IF (.not.allocated(q10_nitrif)) THEN
+	  allocate ( q10_nitrif(Ngrids) )
+	END IF
+	IF (.not.allocated(a1)) THEN
+	  allocate ( a1(Ngrids) )
+	END IF
+	IF (.not.allocated(a2)) THEN
+	  allocate ( a2(Ngrids) )
+	END IF
+	IF (.not.allocated(a3)) THEN
+	  allocate ( a3(Ngrids) )
+	END IF
+	IF (.not.allocated(a4)) THEN
+	  allocate ( a4(Ngrids) )
+	END IF
+	IF (.not.allocated(a5)) THEN
+	  allocate ( a5(Ngrids) )
+	END IF
+	IF (.not.allocated(a6)) THEN
+	  allocate ( a6(Ngrids) )
+	END IF
+	IF (.not.allocated(a7)) THEN
+	  allocate ( a7(Ngrids) )
+	END IF
 !
 !-----------------------------------------------------------------------
 !  Initialize tracer identification indices.

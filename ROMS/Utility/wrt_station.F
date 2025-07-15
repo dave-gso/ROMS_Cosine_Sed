@@ -69,7 +69,7 @@
 #  ifdef SEDBIO
       real(r8), dimension(Nstation(ng)*nspc) :: XposSB, YposSB, ZposSB
       real(r8), dimension(Nstation(ng)*nspc) :: sbsta
-      integer :: NposSB
+      integer :: NposSB, indx, kk
 #  endif
       real(r8), dimension(Nstation(ng)*(N(ng))) :: XposR, YposR, ZposR
       real(r8), dimension(Nstation(ng)*(N(ng)+1)) :: XposW, YposW, ZposW
@@ -418,6 +418,8 @@
       DO i=1,NT(ng)
         ifield=idTvar(i)
         IF (Sout(ifield,ng)) THEN
+!         write(*,*)'itrc =',i,'write sta. ',LBI,UBi,LBj,UBj,         &
+!     &     TRIM(Vname(1,idTvar(i)))
           scale=1.0_r8
           CALL extract_sta3d (ng, iNLM, Cgrid, ifield, r3dvar,          &
      &                        LBi, UBi, LBj, UBj, 1, N(ng),             &
@@ -1173,9 +1175,7 @@
      &                        LBi, UBi, LBj, UBj, 1, nspc,              &
      &                        scale, SEDBIOL(ng)%sedPOM(:,:,:,i),        &
      &                        NposSB, XposSB, YposSB, ZposSB, sbsta)
-!        if( i.eq.4 ) THEN
-!            write(stdout,*)'bPSi(130,1:2)=',sbsta(388:389)
-!        end if
+
           CALL netcdf_put_fvar (ng, iNLM, STA(ng)%name,                 &
      &                          TRIM(Vname(1,idbPM(i))), sbsta,          &
      &                          (/1,1,STA(ng)%Rindex/),                 &

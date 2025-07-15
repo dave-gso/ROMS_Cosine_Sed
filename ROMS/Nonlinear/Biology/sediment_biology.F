@@ -72,7 +72,7 @@
 !                       dAlk, bAlk, JAlk
 
       USE mod_kinds
-      USE mod_biology, ONLY : bUmax, bdep, balpha, bw, btheta_diag,    &
+      USE mod_biology, ONLY : bUmax,bUmaxSi,bdep,balpha,bw,btheta_diag,&
      &                       bnit, btheta_nit, bdo_nit, bdenit,        &
      &                       btheta_denit, bpsi_n, bdo_c, bao2, bpi,   &
      &                       bpsi_p, bfc, bfn, bfp, bfs
@@ -198,6 +198,9 @@
 # ifdef MASKING
           IF( rmask(i).gt.0) THEN
 # endif
+!		if( bUS(i,1).lt.0.1_r8 ) then
+!			write(*,*)'i=',i,'bUS(i,1)=',bUS(i,1)
+!		end if
 ! if near-bottom DOX is less than zero, make it zero:
             DOxyg=max(DOX(i),0.0_r8)
 !            O2=DOX(i)*o2conv !mmol.m-3 to mg/L
@@ -268,8 +271,10 @@
             cff=dtdays/bdep(ng)
             bNO3(i)=bNO3(i)+Jnit*dtdays-JNO3(i)*cff
             IF (bNO3(i).gt.0.0_r8) THEN
-                Jdenit=min(bdenit(ng)*btheta_denit(ng)**(temp(i)-TR)*    &
-     &                  exp(-O2/bpsi_n(ng))*dNO3(i),0.8_r8*CSOD/bdep(ng))
+!                Jdenit=min(bdenit(ng)*btheta_denit(ng)**(temp(i)-TR)*    &
+!     &                  exp(-O2/bpsi_n(ng))*dNO3(i),0.8_r8*CSOD/bdep(ng))
+		Jdenit=min(bdenit(ng)*btheta_denit(ng)**(temp(i)-TR)*    &
+     &                  exp(-O2/bpsi_n(ng))*bNO3(i),0.8_r8*CSOD/bdep(ng))
                 bNO3(i)=bNO3(i)-Jdenit*dtdays
             END IF
 
@@ -336,7 +341,7 @@
 !     &              -FPSi(i)*bfs(ng,k)*dtdays*bUS(i,k)/bPSi(i,k)/bdep(ng)
 !         for silicate, decay rates are not bacterially-mediated, so
 !           set to max values
-                bUS(i,k)=bUmax(ng,k)
+                bUS(i,k)=bUmaxSi(ng,k)
 !         apply limits to decay rates and ensure positivity
                 bUC(i,k)=max( min(bUC(i,k),bUmax(ng,k)),0.0_r8 )
                 bUN(i,k)=max( min(bUN(i,k),bUmax(ng,k)),0.0_r8 )
@@ -348,30 +353,7 @@
                 if( bPOP(i,k).lt.eps) bUP(i,k)=bUmax(ng,k)
 !                if( bPSi(i,k).lt.eps) bUS(i,k)=bUmax(ng,k)
             END DO
-!# ifdef MASKING
-!            bNO3(i)=bNO3(i)*rmask(i)
-!            bNH4(i)=bNH4(i)*rmask(i)
-!            bPO4(i)=bPO4(i)*rmask(i)
-!            bSi(i)=bSi(i)*rmask(i)
-!            JNO3(i)=JNO3(i)*rmask(i)
-!            JNH4(i)=JNH4(i)*rmask(i)
-!            JPO4(i)=JPO4(i)*rmask(i)
-!            JSi(i)=JSi(i)*rmask(i)
-!            SOD(i)=SOD(i)*rmask(i)
-!           DO k=1,nspc
-!                bPOC(i,k)=bPOC(i,k)*rmask(i)
-!                bPON(i,k)=bPON(i,k)*rmask(i)
-!                bPOP(i,k)=bPOP(i,k)*rmask(i)
-!                bPSi(i,k)=bPSi(i,k)*rmask(i)
-!                bUC(i,k)=bUC(i,k)*rmask(i)
-!                bUN(i,k)=bUN(i,k)*rmask(i)
-!                bUP(i,k)=bUP(i,k)*rmask(i)
-!                bUS(i,k)=bUS(i,k)*rmask(i)
-!            END DO
-!# endif
-!            if(JNO3(i).gt.1.0e10_r8) then
-!                write(*,*)'i=',i,'JNO3=',JNO3(i)
-!            end if
+
 # ifdef MASKING
           END IF
 # endif

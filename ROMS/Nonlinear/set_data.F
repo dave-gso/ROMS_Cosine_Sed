@@ -188,6 +188,16 @@
 !
       CALL ana_srflux (ng, tile, iNLM)
 #   endif
+
+#   if defined BIO_UMAINE15 && defined OPTICS_OP1 && defined READ_ZENITH
+!  solar zenith angle
+      CALL set_2dfld_tile (ng, tile, iNLM, idzang,                      &
+     &                     LBi, UBi, LBj, UBj,                          &
+     &                     FORCES(ng)%zenith_angG,                      &
+     &                     FORCES(ng)%zenith_ang,                       &
+     &                     update)
+      IF (exit_flag.ne.NoError) RETURN
+#   endif
 #  endif
 
 #  if defined BULK_FLUXES && !defined LONGWAVE && !defined LONGWAVE_OUT

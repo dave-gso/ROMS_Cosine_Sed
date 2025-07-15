@@ -18,6 +18,9 @@
       USE mod_parallel
 # ifdef BIOLOGY
       USE mod_biology
+#  ifdef SEDBIO
+      USE mod_sedbio
+#  endif
 # endif
 # ifdef FOUR_DVAR
       USE mod_fourdvar
@@ -51,7 +54,7 @@
 # if defined WRITE_WATER && defined MASKING
       integer :: xy_pdim, xyz_pdim
 # endif
-      integer :: DimIDs(32), t2dgrd(3), u2dgrd(3), v2dgrd(3)
+      integer :: DimIDs(33), t2dgrd(3), u2dgrd(3), v2dgrd(3)
       integer :: Vsize(4)
 
       integer :: def_dim
@@ -59,6 +62,9 @@
 # ifdef SOLVE3D
 #  ifdef SEDIMENT
       integer :: b3dgrd(4)
+#  endif
+#  ifdef SEDBIO
+      integer :: bs3dgrd(4)
 #  endif
       integer :: t3dgrd(4), u3dgrd(4), v3dgrd(4), w3dgrd(4)
 # endif
@@ -220,6 +226,11 @@
      &                 Nfec, DimIDs(28))
         IF (exit_flag.ne.NoError) RETURN
 #  endif
+# ifdef SEDBIO
+        status=def_dim(ng, iNLM, DIA(ng)%ncid, ncname, 'nspc',          &
+     &                 nspc, DimIDs(33))
+        IF (exit_flag.ne.NoError) RETURN
+# endif
 # endif
 
         status=def_dim(ng, iNLM, DIA(ng)%ncid, ncname, 'boundary',      &
@@ -336,6 +347,18 @@
         b3dgrd(2)=DimIDs( 5)
         b3dgrd(3)=DimIDs(16)
         b3dgrd(4)=DimIDs(12)
+#   endif
+#  endif
+#  ifdef SEDBIO
+#   if defined WRITE_WATER && defined MASKING
+        bs3dgrd(1)=DimIDs(24)
+        bs3dgrd(2)=DimIDs(33)
+        bs3dgrd(2)=DimIDs(12)
+#   else
+        bs3dgrd(1)=DimIDs( 1)
+        bs3dgrd(2)=DimIDs( 5)
+        bs3dgrd(3)=DimIDs(33)
+        bs3dgrd(4)=DimIDs(12)
 #   endif
 #  endif
 # endif
@@ -646,6 +669,7 @@
               DIA(ng)%Vid(ifield)=var_id(i)
             END IF
           END DO
+
           DO ivar=1,NDbio3d
             ifield=iDbio3(ivar)
             IF (TRIM(var_name(i)).eq.TRIM(Vname(1,ifield))) THEN
@@ -725,6 +749,7 @@
             RETURN
           END IF
         END DO
+
         DO ivar=1,NDbio3d
           ifield=iDbio3(ivar)
           IF (.not.got_var(ifield).and.Dout(ifield,ng)) THEN

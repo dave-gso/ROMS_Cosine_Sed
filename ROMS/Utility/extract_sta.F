@@ -919,16 +919,16 @@
             w212=0.0_r8
             w122=0.0_r8
             w222=0.0_r8
-            IF (Zgrd.ge.0.0_r8) THEN
+!            IF (Zgrd.ge.0.0_r8) THEN
 ! this should always be the case for sediment bio POM class-based variables
               k1=INT(Zgrd)
               k2=INT(Zgrd)
               r1=1.0_r8
               r2=0.0_r8
-            ELSE
-              write(*,*)'extract_sta_3d, benthic sediment, Zgrd=',Zgrd,   &
-     &                   'should be greater than zero'
-            END IF
+!            ELSE
+!              write(*,*)'extract_sta_3d, benthic sediment, Zgrd=',Zgrd,   &
+!     &                   'should be greater than zero'
+!            END IF
             w112=w111*r2
             w212=w211*r2
             w122=w121*r2

@@ -240,6 +240,9 @@
         integer  :: idSinW        ! SIN(omega(k)*t)
         integer  :: idSin2        ! SIN(omega(k)*t)*SIN(omega(l)*t)
         integer  :: idSrad        ! net shortwave radiation flux
+# ifdef READ_ZENITH
+        integer  :: idzang        ! solar zenith angle
+# endif
         integer  :: idSSHc        ! SSH climatology
         integer  :: idSSSc        ! SSS climatology
         integer  :: idSSTc        ! SST climatology
@@ -1078,6 +1081,10 @@
               idCfra=varid
             CASE ('idSrad')
               idSrad=varid
+# ifdef READ_ZENITH
+            CASE ('idzang')
+              idzang=varid
+# endif
             CASE ('idLdwn')
               idLdwn=varid
             CASE ('idLrad')

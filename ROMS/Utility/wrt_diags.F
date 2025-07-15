@@ -18,6 +18,9 @@
       USE mod_parallel
 # ifdef BIOLOGY
       USE mod_biology
+#   ifdef SEDBIO
+      USE mod_sedbio
+#   endif
 # endif
       USE mod_diags
       USE mod_grid

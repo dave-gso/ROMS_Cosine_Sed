@@ -515,6 +515,31 @@
       is=LEN_TRIM(Coptions)+1
       Coptions(is:is+12)=' OPTICS_OP1,'
 # endif
+# ifdef READ_ZENITH
+      IF (Master) WRITE (stdout,20) 'READ_ZENITH',                       &
+     &   'Solar zenith angle read from forcing'
+      is=LEN_TRIM(Coptions)+1
+      Coptions(is:is+12)=' READ_ZENITH,'
+# endif
+# ifdef CARBON
+	IF (Master) WRITE (stdout,20) 'CARBON',                       &
+     &   'CARBON system'
+      is=LEN_TRIM(Coptions)+1
+	Coptions(is:is+7)=' CARBON,'
+# endif
+# ifdef TALK_NONCONSERV
+	IF (Master) WRITE (stdout,20) 'TALK_NONCONSERV',                       &
+     &   'Alkalinity'
+	is=LEN_TRIM(Coptions)+1
+	Coptions(is:is+16)=' TALK_NONCONSERV,'
+# endif
+# ifdef PHYTO_RESP
+	IF (Master) WRITE (stdout,20) 'PHYTO_RESP',                       &
+     &   'Respiration by phytoplankton'
+	is=LEN_TRIM(Coptions)+1
+	Coptions(is:is+11)=' PHYTO_RESP,'
+# endif
+
 #endif
 #if defined BIO_SEDIMENT && \
    (defined BIO_FENNEL   || defined NEMURO || defined ECOSIM)

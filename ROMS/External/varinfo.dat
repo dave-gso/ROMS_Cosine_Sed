@@ -1315,6 +1315,15 @@
   'r2dvar'
   1.0d0
 
+'zenith_ang'                                            ! Input/Output
+  'solar zenith angle'
+  'degrees'                                  
+  'solar zenith angle, scalar, series'         
+  'srf_time'                                   
+  'idzang'
+  'r2dvar'
+  1.0d0
+
 'lwrad_down'                                       ! Input
   'downwelling longwave radiation flux'
   'watt meter-2'                                   ! Input:  [Watt/m2]
@@ -4090,6 +4099,24 @@
   'r3dvar'
   1.0d0
 
+'P1_Production'                                     ! Input/Output
+  'primary production, s1'
+  'millimole_nitrogen meter-3 day-1'               ! [millimole/m3/day]
+  'P_Production small phyto, scalar, series'
+  'ocean_time'
+  'iDbio3(iPPro1)'
+  'r3dvar'
+  1.0d0
+
+'P2_Production'                                     ! Input/Output
+  'primary production, s2'
+  'millimole_nitrogen meter-3 day-1'               ! [millimole/m3/day]
+  'P_Production diatom, scalar, series'
+  'ocean_time'
+  'iDbio3(iPPro2)'
+  'r3dvar'
+  1.0d0
+
 'NO3_uptake'                                       ! Input/Output
   'NO3 uptake'
   'millimole_nitrogen meter-3 day-1'               ! [millimole/m3/day]
@@ -4099,6 +4126,131 @@
   'r3dvar'
   1.0d0
 
+'O2_prod_phyto'                                       ! Input/Output
+  'O2 production by phyto.'
+  'millimole_oxygen meter-3 day-1'               ! [millimole/m3/day]
+  'O2_prod_phyto, scalar, series'
+  'ocean_time'
+  'iDbio3(iO2pr)'
+  'r3dvar'
+  1.0d0
+
+'O2_uptake_nitrif'                                       ! Input/Output
+  'O2 uptake due to nitrification'
+  'millimole_oxygen meter-3 day-1'               ! [millimole/m3/day]
+  'O2_uptake_nitrif, scalar, series'
+  'ocean_time'
+  'iDbio3(initri)'
+  'r3dvar'
+  1.0d0
+
+'O2_uptake_remin'                                       ! Input/Output
+  'O2 uptake due to remineralization'
+  'millimole_oxygen meter-3 day-1'               ! [millimole/m3/day]
+  'O2_uptake_remin, scalar, series'
+  'ocean_time'
+  'iDbio3(iremin)'
+  'r3dvar'
+  1.0d0
+
+'O2_uptake_zoopl'                                       ! Input/Output
+  'O2 uptake due to zooplankton'
+  'millimole_oxygen meter-3 day-1'               ! [millimole/m3/day]
+  'O2_uptake_zoopl, scalar, series'
+  'ocean_time'
+  'iDbio3(izoopl)'
+  'r3dvar'
+  1.0d0
+
+'O2_uptake_phyto_resp'
+  'O2 uptake due to phytoplankton respiration'
+  'millimole_oxygen meter-3 day-1'               ! [millimole/m3/day]
+  'O2_uptake_phyto_resp, scalar, series'
+  'ocean_time'
+  'iDbio3(iphyres)'
+  'r3dvar'
+  1.0d0
+
+'NO3_benthic_flux_diagnostic'                                        ! Input/Output
+  'NO3 benthic flux'
+  'millimole N meter-2 day-1'                 ! [millimole/m2/day]
+  'NO3_blfux_diag, scalar, series'
+  'ocean_time'
+  'iDbio2(ibNO3fx)'
+  'r2dvar'
+  1.0d0
+
+'NH4_benthic_flux_diagnostic'                                        ! Input/Output
+  'NH4 benthic flux'
+  'millimole N meter-2 day-1'                 ! [millimole/m2/day]
+  'NH4_blfux diag, scalar, series'
+  'ocean_time'
+  'iDbio2(ibNH4fx)'
+  'r2dvar'
+  1.0d0
+
+'PO4_benthic_flux_diagnostic'                                        ! Input/Output
+  'PO4 benthic flux'
+  'millimole N meter-2 day-1'                 ! [millimole/m2/day]
+  'PO4_blfux diag, scalar, series'
+  'ocean_time'
+  'iDbio2(ibPO4fx)'
+  'r2dvar'
+  1.0d0
+
+'SiO2_benthic_flux_diagnostic'                                        ! Input/Output
+  'SiO2 benthic flux'
+  'millimole N meter-2 day-1'                 ! [millimole/m2/day]
+  'SiO2_blfux diag, scalar, series'
+  'ocean_time'
+  'iDbio2(ibSiO2fx)'
+  'r2dvar'
+  1.0d0
+
+'TIC_benthic_flux_diagnostic'                                        ! Input/Output
+  'TIC benthic flux'
+  'millimole N meter-2 day-1'                 ! [millimole/m2/day]
+  'TIC_blfux diag, scalar, series'
+  'ocean_time'
+  'iDbio2(ibTICfx)'
+  'r2dvar'
+  1.0d0
+
+'Alk_benthic_flux_diagnostic'                                        ! Input/Output
+  'Alkalinity benthic flux'
+  'milliequivalents meter-2 day-1'                 ! [millimole/m2/day]
+  'Alk_blfux diag, scalar, series'
+  'ocean_time'
+  'iDbio2(ibAlkfx)'
+  'r2dvar'
+  1.0d0
+
+'O2_benthic_flux_diagnostic'                                        ! Input/Output
+  'O2 benthic flux'
+  'millimole meter-2 day-1'                 ! [millimole/m2/day]
+  'O2_blfux diag, scalar, series'
+  'ocean_time'
+  'iDbio2(ibO2fx)'
+  'r2dvar'
+  1.0d0
+
+'PON_benthic_flux_diagnostic'                                        ! Input/Output
+  'PON benthic flux'
+  'millimole N meter-2 day-1'                 ! [millimole/m2/day]
+  'PON_blfux diag, scalar, series'
+  'ocean_time'
+  'iDbio2(ibPONfx)'
+  'r2dvar'
+  1.0d0
+
+'PSi_benthic_flux_diagnostic'                                        ! Input/Output
+  'PSi benthic flux'
+  'millimole N meter-2 day-1'                 ! [millimole/m2/day]
+  'PSi_blfux diag, scalar, series'
+  'ocean_time'
+  'iDbio2(ibPSifx)'
+  'r2dvar'
+  1.0d0
 !
 !  Boundary variables.
 !

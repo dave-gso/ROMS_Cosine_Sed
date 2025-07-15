@@ -125,6 +125,9 @@
 #endif
 #ifdef OPTICS_OP1
      &                   OCEAN(ng) % kdpar,                            &
+# ifdef READ_ZENITH
+     &                   FORCES(ng) % zenith_ang,                      &
+# endif
 #endif
 #ifdef DIAGNOSTICS_BIO
      &                   DIAGS(ng) % DiaBio2d,                         &
@@ -172,6 +175,9 @@
 #endif
 #ifdef OPTICS_OP1
      &                         kdpar,                                  &
+# ifdef READ_ZENITH
+     &                         zenith_ang,                             &
+# endif
 #endif
 #ifdef DIAGNOSTICS_BIO
      &                         DiaBio2d, DiaBio3d,                     &
@@ -192,7 +198,11 @@
       USE mod_sedbio
 #ifdef SEDBIO
       USE sediment_biology_mod,  ONLY : sediment_bio
+# ifdef DISTRIBUTE
+	USE mp_exchange_mod, ONLY : mp_exchange3d, mp_exchange4d
+# endif
 #endif
+
 !
 !  Imported variable declarations.
 !
@@ -231,6 +241,9 @@
 # endif
 # ifdef OPTICS_OP1
       real(r8), intent(inout) :: kdpar(LBi:,LBj:,:)
+#  ifdef READ_ZENITH
+      real(r8), intent(in) :: zenith_ang(LBi:,LBj:)
+#  endif
 # endif
 # ifdef DIAGNOSTICS_BIO
       real(r8), intent(inout) :: DiaBio2d(LBi:,LBj:,:)
@@ -272,9 +285,12 @@
 ! AKB 6/22/23
       real(r8), intent(inout) :: fgCO2(LBi:UBi,LBj:UBj)
       real(r8), intent(inout) :: pCO2s(LBi:UBi,LBj:UBj)
+# endif
 # ifdef OPTICS_OP1
       real(r8), intent(inout) :: kdpar(LBi:UBi,LBj:UBj,UBk)
-# endif
+#  ifdef READ_ZENITH
+      real(r8), intent(in) :: zenith_ang(LBi:UBi,LBj:UBj)
+#  endif
 # endif
 # ifdef DIAGNOSTICS_BIO
       real(r8), intent(inout) :: DiaBio2d(LBi:UBi,LBj:UBj,NDbio2d)
@@ -347,12 +363,12 @@
       real(r8), dimension(LBi:UBi,LBj:UBj) :: bNH4
       real(r8), dimension(LBi:UBi,LBj:UBj) :: bPO4
       real(r8), dimension(LBi:UBi,LBj:UBj) :: bSi
-#ifdef CARBON
+# ifdef CARBON
       real(r8), dimension(LBi:UBi,LBj:UBj) :: bTIC
-#ifdef TALK_NONCONSERV
+#  ifdef TALK_NONCONSERV
       real(r8), dimension(LBi:UBi,LBj:UBj) :: bAlk
-#endif
-#endif
+#  endif
+# endif
       real(r8), dimension(LBi:UBi,LBj:UBj,nspc) :: bUC
       real(r8), dimension(LBi:UBi,LBj:UBj,nspc) :: bUN
       real(r8), dimension(LBi:UBi,LBj:UBj,nspc) :: bUP
@@ -362,12 +378,12 @@
       real(r8), dimension(LBi:UBi,LBj:UBj) :: JPO4
       real(r8), dimension(LBi:UBi,LBj:UBj) :: JSi
       real(r8), dimension(LBi:UBi,LBj:UBj) :: SOD
-#ifdef CARBON
+# ifdef CARBON
       real(r8), dimension(LBi:UBi,LBj:UBj) :: JTIC
-#ifdef TALK_NONCONSERV
+#  ifdef TALK_NONCONSERV
       real(r8), dimension(LBi:UBi,LBj:UBj) :: JAlk
-#endif
-#endif
+#  endif
+# endif
 #endif
 ! AKB Added new SEDBIO arguments on 3/20/23--------------------------
 
@@ -383,10 +399,15 @@
       real(r8) :: dt_optics
       real(r8), parameter :: kdIniVal = 0.05_r8
 #endif
+! parameters controling light inhibition of nitrification (W/m^2)
+      real(r8), parameter :: II00 = 0.0095_r8
+      real(r8), parameter :: KI_nitrif = 0.10_r8
+
       real(r8), dimension(N(ng)) :: sinkindx
 
       real(r8) :: cents1,cens1,cens2,cents2,cent1
-      real(r8) :: thick,upo4s1,uco2s1,pnh4s2,OXR, Q10
+      real(r8) :: thick,upo4s1,uco2s1,pnh4s2,OXR
+	real(r8) :: q10pp,q10pr,q10br,q10od,q10zr,q10zg,q10ni
       real(r8) :: alts1, alts2, grows1, grows2,unh4s1,pnh4s1
       real(r8) :: uno3s2, unh4s2, uno3s1,usio4s2,upo4s2,uco2s2
       real(r8) :: xco2_in,gno3s1,gnh4s1,gno3s2,gnh4s2,gsio4s2
@@ -402,8 +423,11 @@
       
       real(r8) :: npchl1,npchl2,gchl1zz1,gchl2zz2,morchl1,morchl2
       real(r8) :: Qsms14,Qsms15,NQsms14,NQsms15,sms14,sms15
-      real(r8) :: Chl2C_s1,Chl2C_s2,excrz1_2,excrz2_2,II00
+      real(r8) :: Chl2C_s1,Chl2C_s2,excrz1_2,excrz2_2
       real(r8) :: aggregs1,aggregs2,aggregchl1,aggregchl2,sumphy
+#ifdef PHYTO_RESP
+      real(r8) :: resps1,resps2,respchl1,respchl2
+#endif
 #ifdef HAB
       real(r8) :: alts3,grows3,unh4s3,uno3s3,usio4s3,upo4s3,uco2s3
       real(r8) :: gno3s3,gnh4s3,gsio4s3,pnh4s3
@@ -413,6 +437,9 @@
       real(r8) :: Chl2C_s3
       real(r8) :: aggregs3,aggregchl3
       real(r8) :: gs3zz2,gchl3zz2
+# ifdef PHYTO_RESP
+      real(r8) :: resps3,respchl3
+# endif
 #endif
       
       real(r8) :: cffL, cffR, cu, dltL, dltR
@@ -429,9 +456,6 @@
       real(r8), dimension(LBi:UBi) :: FPOP
       real(r8), dimension(LBi:UBi) :: FPSi
 #endif
-! test
-      integer :: arr_size
-      logical :: inan
 
 #include "set_bounds.h"
 
@@ -441,10 +465,12 @@
 ! If appropriate, initialize time-averaged diagnostic arrays.
 !-----------------------------------------------------------------------
 !
+
       IF (((iic(ng).gt.ntsDIA(ng)).and.                                &
      &     (MOD(iic(ng),nDIA(ng)).eq.1)).or.                           &
      &    ((iic(ng).ge.ntsDIA(ng)).and.(nDIA(ng).eq.1)).or.            &
      &    ((nrrec(ng).gt.0).and.(iic(ng).eq.ntstart(ng)))) THEN
+
         DO ivar=1,NDbio2d
           DO j=Jstr,Jend
             DO i=Istr,Iend
@@ -522,24 +548,24 @@
           bNH4(i,j)=sedPoreWaterCon(i,j,ibNH4)      ! NPWC = ibNH4 = 2
           bPO4(i,j)=sedPoreWaterCon(i,j,ibPO4)      ! NPWC = ibPO4 = 3
           bSi(i,j)=sedPoreWaterCon(i,j,ibSi)        ! NPWC = ibSi = 4
-#ifdef CARBON
+# ifdef CARBON
           bTIC(i,j)=sedPoreWaterCon(i,j,ibTIC)      ! NPWC = ibTIC = 5
-#ifdef TALK_NONCONSERV
+#  ifdef TALK_NONCONSERV
           bAlk(i,j)=sedPoreWaterCon(i,j,ibAlk)      ! NPWC = ibAlk = 6
-#endif
-#endif
+#  endif
+# endif
 
           JNO3(i,j)=sedFlux(i,j,ibJNO3)         ! NSF = ibJNO3 = 1: benthic flux of NO3
           JNH4(i,j)=sedFlux(i,j,ibJNH4)         ! NSF = ibJNH4 = 2: benthic flux of NH4
           JPO4(i,j)=sedFlux(i,j,ibJPO4)         ! NSF = ibJPO4 = 3: benthic flux of PO4
           JSi(i,j)=sedFlux(i,j,ibJSi)           ! NSF = ibJSi  = 4: benthic flux of Si
           SOD(i,j)=sedFlux(i,j,ibSOD)           ! NSF = ibSOD  = 5: benthic oxygen demand
-#ifdef CARBON
+# ifdef CARBON
           JTIC(i,j)=sedFlux(i,j,ibJTIC)         ! NSF = ibJTIC = 6: benthic flux of TIC
-#ifdef TALK_NONCONSERV
+#  ifdef TALK_NONCONSERV
           JAlk(i,j)=sedFlux(i,j,ibJAlk)         ! NSF - ibJAlk = 7: benthic flux of alkalinity
-#endif
-#endif
+#  endif
+# endif
         END DO
       END DO
 #endif
@@ -587,7 +613,11 @@
             
           DO k=1,N(ng)
             DO i=Istr,Iend
-              Bio_bak(i,k,indx)=MAX(t(i,j,k,nstp,indx),0.000001_r8)
+!        if( (indx.eq.iopal.or.indx.eq.iSiOH).and.t(i,j,k,nstp,indx).lt.0.0_r8) then
+!            write(*,*)'< 0: indx = ',indx,'i=',i,'j=',j,'k=',k
+!        end if
+!              Bio_bak(i,k,indx)=MAX(t(i,j,k,nstp,indx),0.000001_r8)
+		  Bio_bak(i,k,indx)=MAX(t(i,j,k,nstp,indx),0.000000_r8)
               Bio(i,k,indx)=Bio_bak(i,k,indx)
             END DO
           END DO
@@ -596,8 +626,6 @@
 #ifdef CARBON
         DO k=1,N(ng)
           DO i=Istr,Iend
-            Bio_bak(i,k,iTIC_)=MIN(Bio_bak(i,k,iTIC_),3000.0_r8)
-            Bio_bak(i,k,iTIC_)=MAX(Bio_bak(i,k,iTIC_),400.0_r8)
             Bio(i,k,iTIC_)=Bio_bak(i,k,iTIC_)
           END DO
         END DO
@@ -617,9 +645,6 @@
           DO i=Istr,Iend
             Bio(i,k,isalt)=MAX(t(i,j,k,nstp,isalt), 0.0_r8)
             Bio(i,k,itemp)=t(i,j,k,nstp,itemp)
-#ifdef CARBON
-!          Bio(i,k,iTIC_)=MAX(t(i,j,k,nstp,iTIC_), 1800.0_r8)
-#endif
           END DO
         END DO
 
@@ -656,15 +681,19 @@
 !  surface or bottom of a vertical grid, or at w location vertically.
 !
 #ifdef OPTICS_OP1
-      if( mod(time(ng),dt_optics).lt.0.000001_r8) then
-    
-        call optic_property(Istr, Iend, ng,                             &
+      IF( mod(time(ng),dt_optics).lt.0.000001_r8) then
+!        write(*,*)'calling kdPAR_compute'
+!        call optic_property(Istr, Iend, ng,                             &
+        call kdPAR_compute(Istr, Iend, ng,                              &
      &                       LBi, UBi, LBj, UBj, UBk,                   &
      &                       IminS, ImaxS, j,                           &
 #  ifdef MASKING
      &                       rmask,                                     &
 #  endif
-     &                       Bio(LBi:,:,isalt), hzl,                    &
+#  ifdef READ_ZENITH
+     &                       zenith_ang,                                &
+#  endif
+     &                       Bio(LBi:,:,isalt), hzl, z_r,               &
      &                       Bio(LBi:,:,iChl1), Bio(LBi:,:,iChl2),      &
      &                       Bio(LBi:,:,iSphy), Bio(LBi:,:,iLphy),      &
      &                       Bio(LBi:,:,iSDet),                         &
@@ -680,7 +709,7 @@
           END DO
         END DO
 
-      endif
+      ENDIF
 #endif
 
     DO i=Istr,Iend
@@ -699,7 +728,9 @@
 #endif
        
        PIO(i,K)=PIO(i,K+1)*EXP(-cff1)
+! average PAR over layer:
        PAR(i,K)=(PIO(i,K+1)-PIO(i,K))/cff1
+! variable ADPT only used if no chlorophyll variable used
        ADPT(i,K) = 1.0_r8-4.0_r8*z_r(i,j,k)/zeptic
       END DO
     END DO
@@ -710,26 +741,25 @@
 !-----------------------------------------------------------------------
 !     CALCULATING the temperature dependence of biology processes
 !-----------------------------------------------------------------------
-! different options
-
-     Q10=exp(0.069_r8*(Bio(i,k,itemp)-25.0_r8))
-!  Q10 = 1.0_r8
-!    Q10=exp(-4000.0_r8*(1.0_r8/(Bio(i,k,itemp)+273.15_r8)-  &
-!   &  1.0_r8/303.15_r8))
+! compute q10 factors
+!	Q10=exp(0.069_r8*(Bio(i,k,itemp)-15.0_r8))
+      q10pp=exp(a1(ng)*(Bio(i,k,itemp)-15.0_r8))	! phyto production
+      q10pr=exp(a2(ng)*(Bio(i,k,itemp)-15.0_r8))	! phyto respiration
+      q10br=exp(a3(ng)*(Bio(i,k,itemp)-15.0_r8))	! bacterial remineralization
+      q10od=exp(a4(ng)*(Bio(i,k,itemp)-15.0_r8))	! opal dissolution
+      q10zr=exp(a5(ng)*(Bio(i,k,itemp)-15.0_r8))	! zoopl respiration
+      q10zg=exp(a6(ng)*(Bio(i,k,itemp)-15.0_r8))	! zoopl grazing
+      q10ni=exp(a7(ng)*(Bio(i,k,itemp)-15.0_r8))	! nitrification
 !
 !-----------------------------------------------------------------------
 !     CALCULATING THE OXIDATION RATE OF ORGANIC MATTER
 !-----------------------------------------------------------------------
 !
 !  Any biology processes that consume oxygen will be limited by the
-!  availability of dissolved oxygen except the bottom layer.
+!  availability of dissolved oxygen.
 !
 #ifdef OXYGEN
-      if(k .gt. 1)then
-         OXR = Bio(i,k,iOxyg)/(Bio(i,k,iOxyg)+AKOX(ng))
-      else
-         OXR = 1.0_r8
-      endif
+      OXR = Bio(i,k,iOxyg)/(Bio(i,k,iOxyg)+AKOX(ng))
 #else
       OXR = 1.0_r8
 #endif
@@ -883,13 +913,22 @@
 !     -------------------------------------------------------
 !     CALCULATING THE NEW,REGENERATED,AND PRIMARY PRODUCTION 
 !     -------------------------------------------------------
-      nps1 =  gno3s1 * Bio(i,k,iSphy)
-      rps1 =  gnh4s1 * Bio(i,k,iSphy)
-      nps2 =  gno3s2 * Bio(i,k,iLphy) 
-      rps2 =  gnh4s2 * Bio(i,k,iLphy)
+      nps1 =  gno3s1 * Bio(i,k,iSphy) * q10pp
+      rps1 =  gnh4s1 * Bio(i,k,iSphy) * q10pp
+      nps2 =  gno3s2 * Bio(i,k,iLphy)  * q10pp
+      rps2 =  gnh4s2 * Bio(i,k,iLphy) * q10pp
+#ifdef PHYTO_RESP
+!     phytoplankton respiration (basal plus growth related)
+      resps1=(rrb1(ng)*Bio(i,k,iSphy) + rrg1(ng)*(nps1+rps1))*q10pr
+      resps2=(rrb2(ng)*Bio(i,k,iLphy) + rrg2(ng)*(nps2+rps2))*q10pr
+#endif
 #ifdef HAB
-      nps3 =  gno3s3 * Bio(i,k,iHphy)
-      rps3 =  gnh4s3 * Bio(i,k,iHphy)
+      nps3 =  gno3s3 * Bio(i,k,iHphy) * q10pp
+      rps3 =  gnh4s3 * Bio(i,k,iHphy) * q10pp
+# ifdef PHYTO_RESP
+!     phytoplankton respiration (basal plus growth related)
+      resps3=(rrb3(ng)*Bio(i,k,iHphy) + rrg3(ng)*(nps3+rps3))*q10pr
+# endif
 #endif
 !      
 !     *** Chla for s1: Xiu and Geng ***  npchl1; npchl2; Chl2cs1_m(ng); Chl2cs2_m(ng)
@@ -912,207 +951,203 @@
       npchl2=(gno3s2+gnh4s2)*(gno3s2+gnh4s2)*Chl2cs2_m(ng)     &
      &   *Bio(i,k,iChl2)/                             &
      &   (amaxs2(ng)*MAX(Chl2C_s2,Minval)*PAR(i,k)+Minval)
+		  
+      npchl1=npchl1*q10pp
+      npchl2=npchl2*q10pp
+#ifdef PHYTO_RESP
+	respchl1=resps1*c2n(ng)*Chl2C_s1*12.0_r8*q10pr
+      respchl2=resps2*c2n(ng)*Chl2C_s2*12.0_r8*q10pr	  
+#endif
 #ifdef HAB
       npchl3=(gno3s3+gnh4s3)*(gno3s3+gnh4s3)*Chl2cs3_m(ng)     &
      &   *Bio(i,k,iChl3)/                             &
      &   (amaxs3(ng)*MAX(Chl2C_s3,Minval)*PAR(i,k)+Minval)
+      npchl3=npchl3*q10pp
+# ifdef PHYTO_RESP
+      respchl3=resps3*c2n(ng)*Chl2C_s3*12.0_r8*q10pr
+# endif
 #endif
 
 !     -------------------------------------------------------
-!     CALCULATING THE mortality and excretion of zoo
+!     CALCULATING THE mortality of phyto and zoopl
 !     -------------------------------------------------------
-      morts1=bgamma3(ng)*Bio(i,k,iSphy)
-      morts2=bgamma4(ng)*Bio(i,k,iLphy)
+! use respiration q10s
+      morts1=bgamma3(ng)*Bio(i,k,iSphy)*q10pr
+      morts2=bgamma4(ng)*Bio(i,k,iLphy)*q10pr
 #ifdef HAB
-      morts3=bgamma4s3(ng)*Bio(i,k,iHphy)
+      morts3=bgamma4s3(ng)*Bio(i,k,iHphy)*q10pr
 #endif
-      excrz1=reg1(ng)*Bio(i,k,iSzoo)
-      excrz2=reg2(ng)*Bio(i,k,iLzoo)     
- 
-!assimilate related excretion from Fennel
-      
-      excrz1_2=bgamma1(ng)*reg1(ng)*Bio(i,k,iSphy)*          &
-     & Bio(i,k,iSphy)*Bio(i,k,iSzoo)/                        &
-     &     (akz1(ng)+Bio(i,k,iSphy)*Bio(i,k,iSphy))
-      
-      excrz2_2=bgamma2(ng)*reg2(ng)*( Bio(i,k,iLphy)*         &
-     &  Bio(i,k,iLphy)*Bio(i,k,iLzoo)/          &
-     &     (akz2(ng)+Bio(i,k,iLphy)*Bio(i,k,iLphy)) +         &
-     &     Bio(i,k,iSzoo)*Bio(i,k,iSzoo)*Bio(i,k,iLzoo)/      &
-     &     (akz2(ng)+Bio(i,k,iSzoo)*Bio(i,k,iSzoo)) )
-#ifdef HAB
-!  add effects of S3
-      excrz2_2=excrz2_2+bgamma2(ng)*reg2(ng)*( Bio(i,k,iHphy)* &
-     &                 Bio(i,k,iHphy)*Bio(i,k,iLzoo)/          &
-     &                 (akz2(ng)+Bio(i,k,iHphy)*Bio(i,k,iHphy)))
-#endif
-      remvz2 = bgamma0(ng)*Bio(i,k,iLzoo)*Bio(i,k,iLzoo)
-      
+      remvz2 = bgamma0(ng)*Bio(i,k,iLzoo)*Bio(i,k,iLzoo)*q10zr
+
 !     *** Chla for s1 and s2: Xiu and Geng
-!      
-
-       morchl1=bgamma3(ng)*Bio(i,k,iChl1)
-       morchl2=bgamma4(ng)*Bio(i,k,iChl2)
+!
+       morchl1=bgamma3(ng)*Bio(i,k,iChl1)*q10pr
+       morchl2=bgamma4(ng)*Bio(i,k,iChl2)*q10pr
 #ifdef HAB
-       morchl3=bgamma4s3(ng)*Bio(i,k,iChl3)
+       morchl3=bgamma4s3(ng)*Bio(i,k,iChl3)*q10pr
 #endif
       
 ! aggregates
+!  use respiration q10 
 #ifdef HAB
       sumphy=Bio(i,k,iSphy)+Bio(i,k,iLphy)+Bio(i,k,iHphy)
-      aggregs1=bgamma6(ng)*sumphy*Bio(i,k,iSphy)
-      aggregs2=bgamma6(ng)*sumphy*Bio(i,k,iLphy)
-      aggregs3=bgamma6(ng)*sumphy*Bio(i,k,iHphy)
-      aggregchl1=bgamma6(ng)*sumphy*Bio(i,k,iChl1)
-      aggregchl2=bgamma6(ng)*sumphy*Bio(i,k,iChl2)
-      aggregchl3=bgamma6(ng)*sumphy*Bio(i,k,iChl3)
+      aggregs1=bgamma6(ng)*sumphy*Bio(i,k,iSphy)*q10pr
+      aggregs2=bgamma6(ng)*sumphy*Bio(i,k,iLphy)*q10pr
+      aggregs3=bgamma6(ng)*sumphy*Bio(i,k,iHphy)*q10pr
+      aggregchl1=bgamma6(ng)*sumphy*Bio(i,k,iChl1)*q10pr
+      aggregchl2=bgamma6(ng)*sumphy*Bio(i,k,iChl2)*q10pr
+      aggregchl3=bgamma6(ng)*sumphy*Bio(i,k,iChl3)*q10pr
 #else
       sumphy=Bio(i,k,iSphy)+Bio(i,k,iLphy)
-      aggregs1=bgamma6(ng)*sumphy*Bio(i,k,iSphy)
-      aggregs2=bgamma6(ng)*sumphy*Bio(i,k,iLphy)
-      aggregchl1=bgamma6(ng)*sumphy*Bio(i,k,iChl1)
-      aggregchl2=bgamma6(ng)*sumphy*Bio(i,k,iChl2)
+      aggregs1=bgamma6(ng)*sumphy*Bio(i,k,iSphy)*q10pr
+      aggregs2=bgamma6(ng)*sumphy*Bio(i,k,iLphy)*q10pr
+      aggregchl1=bgamma6(ng)*sumphy*Bio(i,k,iChl1)*q10pr
+      aggregchl2=bgamma6(ng)*sumphy*Bio(i,k,iChl2)*q10pr
 #endif
 !      -------------------------------------------------------
 !     CALCULATING THE nitrification and reminalization
 !     -------------------------------------------------------
-!       nitrif = bgamma7(ng)*Bio(i,k,iNH4_)
-
-!another option
-        II00=0.0095_r8
+! formulation in which light inhibits nitrification
         nitrif = bgamma7(ng)*(1.0_r8-max(0.0_r8,(PAR(i,k)-II00)/   &
-     &       (0.1_r8+PAR(i,k)-II00)))*Bio(i,k,iNH4_)
-
-!important
-!      if (hh(i,j) .le. 10.0) then
-!        cent1=0.5_r8
-!       else
-
-      if(k .gt. 1)then
-        cent1=max(0.21_r8*Bio(i,k,itemp)/25.0_r8                       &
-      &           +0.01_r8, 0.01_r8)
-!        cent1=bgamma5(ng)
-      else
-        cent1=1.0_r8*(1.0_r8/dtdays)  
-      endif
+     &       (KI_nitrif+PAR(i,k)-II00)))*Bio(i,k,iNH4_)
+	nitrif=nitrif*q10ni
+		  
+! remineralization (nitrogenous detritus)
+      cent1=bgamma5(ng)
+      midd = cent1*Bio(i,k,iSDet)*q10br
       
-!      endif
-      
-      midd = cent1*Bio(i,k,iSDet)
-      
-!      MIDDSI(k) = bgamma5*ddsi(k)
-
-!      if (hh(i,j) .le. 10.0) then
-!        cent1=0.5_r8
-!       else
-
-      if(k .gt. 1)then
-       cent1=max(0.19_r8*Bio(i,k,itemp)/25.0_r8+0.01_r8,               &
-     &        0.01_r8)
-!        cent1=bgamma5(ng)
-! the unit is day^{-1}
-      else
-        cent1=1.0_r8*(1.0_r8/dtdays)  
-      endif
-      
-!      endif
-      
-      middsi = cent1*Bio(i,k,iopal)
+! remineralization (silicious detritus)
+      cent1=bgamma5s(ng)
+      middsi = cent1*Bio(i,k,iopal)*q10od
            
 !     -------------------------------------------------------
 !     CALCULATING THE GRAZING RATE
 !     -------------------------------------------------------
+! type II, michaelis-menten:
+!      gs1zz1 = beta1(ng)*Bio(i,k,iSzoo)*Bio(i,k,iSphy)                 &
+!              &    /(akz1(ng)+Bio(i,k,iSphy))
+! type III, michaelis-menten:
+        gs1zz1 = beta1(ng)*Bio(i,k,iSzoo)*Bio(i,k,iSphy)*Bio(i,k,iSphy) &
+     &    /(akz1(ng)*akz1(ng)+Bio(i,k,iSphy)*Bio(i,k,iSphy))
 
-      gs1zz1 = beta1(ng)*Bio(i,k,iSzoo)*Bio(i,k,iSphy)                 &
-              &    /(akz1(ng)+Bio(i,k,iSphy))
-
-!another option s curve
-!      gs1zz1 = beta1(ng)*Bio(i,k,iSzoo)*Bio(i,k,iSphy)*Bio(i,k,iSphy)   &
-!              &    /(akz1(ng)+Bio(i,k,iSphy)*Bio(i,k,iSphy))
-!
 !     *** Chla for s1: Xiu and Geng
 !              
-      gchl1zz1 = gs1zz1*Bio(i,k,iChl1)/Bio(i,k,iSphy)
-# ifdef HAB
-      ro8=ro5(ng)*Bio(i,k,iLphy)+ro6(ng)*Bio(i,k,iSzoo)                &
-     & +ro7(ng)*Bio(i,k,iSDet) +ro5H(ng)*Bio(i,k,iHphy)
+!      gchl1zz1 = gs1zz1*Bio(i,k,iChl1)/Bio(i,k,iSphy)
+	gchl1zz1 = gs1zz1*Bio(i,k,iChl1)/(Bio(i,k,iSphy)+Minval)
+        
+      gs1zz1=gs1zz1*q10zg
+      gchl1zz1=gchl1zz1*q10zg
+		  
+! type III, michaelis-menten
+#ifdef HAB
+!      ro8=ro5(ng)*Bio(i,k,iLphy)+ro6(ng)*Bio(i,k,iSzoo)                &
+!     & +ro7(ng)*Bio(i,k,iSDet) +ro5H(ng)*Bio(i,k,iHphy)
       ro9=ro5(ng)*Bio(i,k,iLphy)*Bio(i,k,iLphy)                        &
      & +ro6(ng)*Bio(i,k,iSzoo)*Bio(i,k,iSzoo)                          &
      & +ro7(ng)*Bio(i,k,iSDet)*Bio(i,k,iSDet)                          &
      & +ro5H(ng)*Bio(i,k,iHphy)*Bio(i,k,iHphy)
 
-      if((ro8 .le. 0.0_r8) .and. (ro9 .le. 0.0_r8))then
+!      if((ro8 .le. 0.0_r8) .and. (ro9 .le. 0.0_r8))then
+      IF( ro9 .le. 0.0_r8 )then
         gs2zz2  = 0.0_r8
         gs3zz2  = 0.0_r8
         gddzz2  = 0.0_r8
         gzz1zz2 = 0.0_r8
         gchl2zz2 = 0.0_r8    ! Xiu and Geng
         gchl3zz2 = 0.0_r8
-      else
+      ELSE
         gs2zz2= beta2(ng)*ro5(ng)*Bio(i,k,iLphy)*Bio(i,k,iLphy)        &
-     & *Bio(i,k,iLzoo)/(akz2(ng)*ro8+ro9)
-        gs3zz2= beta2(ng)*ro5H(ng)*Bio(i,k,iHphy)*Bio(i,k,iHphy)        &
-           & *Bio(i,k,iLzoo)/(akz2(ng)*ro8+ro9)
+     & *Bio(i,k,iLzoo)/(akz2(ng)*akz2(ng)+ro9)
+        gs3zz2= beta2(ng)*ro5H(ng)*Bio(i,k,iHphy)*Bio(i,k,iHphy)       &
+     & *Bio(i,k,iLzoo)/(akz2(ng)*akz2(ng)+ro9)
         gzz1zz2=beta2(ng)*ro6(ng)*Bio(i,k,iSzoo)*Bio(i,k,iSzoo)        &
-     & *Bio(i,k,iLzoo)/(akz2(ng)*ro8+ro9)
+     & *Bio(i,k,iLzoo)/(akz2(ng)*akz2(ng)+ro9)
         gddzz2=beta2(ng)*ro7(ng)*Bio(i,k,iSDet)*Bio(i,k,iSDet)         &
-     & *Bio(i,k,iLzoo)/(akz2(ng)*ro8+ro9)
+     & *Bio(i,k,iLzoo)/(akz2(ng)*akz2(ng)+ro9)
             
         !     *** Chla for s2 and s3: Xiu and Geng
         !
-        gchl2zz2 = gs2zz2*Bio(i,k,iChl2)/Bio(i,k,iLphy)
-        gchl3zz2 = gs3zz2*Bio(i,k,iChl3)/Bio(i,k,iHphy)
-      endif
-# else
-      ro8=ro5(ng)*Bio(i,k,iLphy)+ro6(ng)*Bio(i,k,iSzoo)                &
-              & +ro7(ng)*Bio(i,k,iSDet)
+!        gchl2zz2 = gs2zz2*Bio(i,k,iChl2)/Bio(i,k,iLphy)
+!        gchl3zz2 = gs3zz2*Bio(i,k,iChl3)/Bio(i,k,iHphy)
+	  gchl2zz2 = gs2zz2*Bio(i,k,iChl2)/(Bio(i,k,iLphy)+Minval)
+        gchl3zz2 = gs3zz2*Bio(i,k,iChl3)/(Bio(i,k,iHphy)+Minval)
+      ENDIF
+      
+      gs2zz2=gs2zz2*q10zg
+      gs3zz2=gs3zz2*q10zg
+      gzz1zz2=gzz1zz2*q10zg
+      gddzz2=gddzz2*q10zg
+      gchl2zz2=gchl2zz2*q10zg
+      gchl3zz2=gchl3zz2*q10zg
+#else
+!      ro8=ro5(ng)*Bio(i,k,iLphy)+ro6(ng)*Bio(i,k,iSzoo)                &
+!              & +ro7(ng)*Bio(i,k,iSDet)
       ro9=ro5(ng)*Bio(i,k,iLphy)*Bio(i,k,iLphy)+ro6(ng)                &
             & *Bio(i,k,iSzoo)*Bio(i,k,iSzoo)                           &
             & +ro7(ng)*Bio(i,k,iSDet)*Bio(i,k,iSDet)
 
-      if((ro8 .le. 0.0_r8) .and. (ro9 .le. 0.0_r8))then
+ !     if((ro8 .le. 0.0_r8) .and. (ro9 .le. 0.0_r8))then
+      IF( ro9 .le. 0.0_r8 )then
            gs2zz2  = 0.0_r8
            gddzz2  = 0.0_r8
            gzz1zz2 = 0.0_r8
            gchl2zz2 = 0.0_r8    ! Xiu and Geng
-      else
+      ELSE
       gs2zz2= beta2(ng)*ro5(ng)*Bio(i,k,iLphy)*Bio(i,k,iLphy)          &
-           & *Bio(i,k,iLzoo)/(akz2(ng)*ro8+ro9)
+           & *Bio(i,k,iLzoo)/(akz2(ng)*akz2(ng)+ro9)
       gzz1zz2=beta2(ng)*ro6(ng)*Bio(i,k,iSzoo)*Bio(i,k,iSzoo)          &
-            & *Bio(i,k,iLzoo)/(akz2(ng)*ro8+ro9)
+            & *Bio(i,k,iLzoo)/(akz2(ng)*akz2(ng)+ro9)
       gddzz2=beta2(ng)*ro7(ng)*Bio(i,k,iSDet)*Bio(i,k,iSDet)           &
-            & *Bio(i,k,iLzoo)/(akz2(ng)*ro8+ro9)
+            & *Bio(i,k,iLzoo)/(akz2(ng)*akz2(ng)+ro9)
             
             !
 !     *** Chla for s2: Xiu and Geng
 !
-      gchl2zz2 = gs2zz2*Bio(i,k,iChl2)/Bio(i,k,iLphy)
-           
-      endif
-# endif
+!      gchl2zz2 = gs2zz2*Bio(i,k,iChl2)/Bio(i,k,iLphy)
+	  gchl2zz2 = gs2zz2*Bio(i,k,iChl2)/(Bio(i,k,iLphy)+Minval)
+      ENDIF
+		  
+      gs2zz2=gs2zz2*q10zg
+      gzz1zz2=gzz1zz2*q10zg
+      gddzz2=gddzz2*q10zg
+      gchl2zz2=gchl2zz2*q10zg
+#endif
 
-! critical values to stop grazing
-
-    if(Bio(i,k,iSphy) .le. 0.005_r8)then
-        gs1zz1=0.0_r8
-        gchl1zz1=0.0_r8    ! Xiu and Geng
-    endif
-    if(Bio(i,k,iLphy) .le. 0.005_r8)then
-        gs2zz2=0.0_r8
-        gchl2zz2=0.0_r8    ! Xiu and Geng
-    endif
+! critical values to stop grazing (shouldn't be needed for type III grazing)
+!    IF(Bio(i,k,iSphy) .le. 0.005_r8)then
+!        gs1zz1=0.0_r8
+!        gchl1zz1=0.0_r8    ! Xiu and Geng
+!    ENDIF
+!    IF(Bio(i,k,iLphy) .le. 0.005_r8)then
+!        gs2zz2=0.0_r8
+!        gchl2zz2=0.0_r8    ! Xiu and Geng
+!    ENDIF
           
 ! total grazing for large zoo
 
    gtzz2 =  gddzz2 + gzz1zz2 + gs2zz2
-# ifdef HAB
-       if(Bio(i,k,iHphy) .le. 0.005_r8) then
-              gs3zz2=0.0_r8
-              gchl3zz2=0.0_r8
-       endif
+#ifdef HAB
+!       IF(Bio(i,k,iHphy) .le. 0.005_r8) then
+!              gs3zz2=0.0_r8
+!              gchl3zz2=0.0_r8
+!       ENDIF
        gtzz2=gtzz2 + gs3zz2
-# endif
+#endif
 
+! Excretion by zooplankton
+!  use q10 for respiration
+!   basal excretion
+       excrz1=reg1(ng)*Bio(i,k,iSzoo)*q10zr
+       excrz2=reg2(ng)*Bio(i,k,iLzoo)*q10zr
+               
+! ingestion related excretion (from Fennel 2006)
+!  this is a fraction of the grazing rate
+       excrz1_2=bgamma1(ng)*reg1(ng)*gs1zz1/beta1(ng)
+       excrz2_2=bgamma2(ng)*reg2(ng)*gtzz2/beta2(ng)
+					     
+       excrz1_2=excrz1_2*q10zr
+       excrz2_2=excrz2_2*q10zr
+              
 !sediment o2 consumption
 ! moved below calculation of sinking flux and, if SEDBIO defined, calculation
 !  of sediment oxygen demand.
@@ -1133,11 +1168,26 @@
      &             - gddzz2+ morts1 + morts2- OXR*midd+ remvz2   &
      &             + aggregs1 + aggregs2
      
-        Qsms2 = - (nps2 + rps2)*si2n(ng) + OXR*middsi
-        Qsms9 = (gs2zz2 + morts2+aggregs2)*si2n(ng) - OXR*middsi
+        Qsms2 = - (nps2 + rps2)*si2n(ng) + middsi
+        Qsms9 = (gs2zz2 + morts2+aggregs2)*si2n(ng) - middsi
+!        Qsms10= - (nps1+rps1+nps2+rps2)*p2n(ng)                        &
+!     &          +OXR*(excrz1+excrz2)*p2n(ng)+ OXR*midd*p2n(ng)
+! added effect of ingestion-related excretion
         Qsms10= - (nps1+rps1+nps2+rps2)*p2n(ng)                        &
-     &          +OXR*(excrz1+excrz2)*p2n(ng)+ OXR*midd*p2n(ng)
+     &          +OXR*(excrz1+excrz2+excrz1_2+excrz2_2)*p2n(ng)         &
+     &          + OXR*midd*p2n(ng)
+#ifdef PHYTO_RESP
+        Qsms4 = Qsms4 - OXR*resps1
+        Qsms5 = Qsms5 - OXR*resps2
+        Qsms3 = Qsms3 + OXR*(resps1 + resps2)
+        Qsms10 = Qsms10 + OXR*(resps1 + resps2)*p2n(ng)
+!        Qsms2 = Qsms2 + OXR*(resps1+resps2)*si2n(ng)
+        Qsms2 = Qsms2 + OXR*resps2*si2n(ng)
+#endif
 #ifdef HAB
+!  note that detritus here does not get the sloppy-feeding part as this
+!  is included in gtzz2 above. likewise excretion above includes the HAB part,
+!  so no need to include here:
         Qsms1 = Qsms1 - nps3
         Qsms3 = Qsms3 - rps3
         Qsms8 = Qsms8 + morts3 + aggregs3
@@ -1145,22 +1195,47 @@
         Qsms9 = Qsms9 + (gs3zz2 + morts3 + aggregs3)*si2n(ng)
         Qsms10 = Qsms10 - (nps3 + rps3)*p2n(ng)
         Qsms16 = + nps3 + rps3 - gs3zz2 - morts3 - aggregs3     ! HAB
+# ifdef PHYTO_RESP
+        Qsms16 = Qsms16 - OXR*resps3
+        Qsms3 = Qsms3 + OXR*resps3
+        Qsms10 = Qsms10 + OXR*resps3*p2n(ng)
+        Qsms2 = Qsms2 + OXR*resps3*si2n(ng)
+# endif
 #endif
 #ifdef OXYGEN
+!        Qsms11 = (nps1+nps2)*o2no(ng)+(rps1+rps2)*o2nh(ng)             &
+!     &         -2.0_r8*OXR*nitrif - OXR*(excrz1 + excrz2)*o2nh(ng)     &
+!     &         - OXR*midd*o2nh(ng)
+! added effect of ingestion-related excretion
         Qsms11 = (nps1+nps2)*o2no(ng)+(rps1+rps2)*o2nh(ng)             &
      &         -2.0_r8*OXR*nitrif - OXR*(excrz1 + excrz2)*o2nh(ng)     &
-     &         - OXR*midd*o2nh(ng)
+     &         -OXR*(excrz1_2+excrz2_2)*o2nh(ng)- OXR*midd*o2nh(ng)
+# ifdef PHYTO_RESP
+        Qsms11 = Qsms11 - OXR*( resps1 + resps2 )*o2nh(ng)                          
+# endif
 #  ifdef HAB
         Qsms11 = Qsms11 + nps3*o2no(ng) + rps3*o2nh(ng)
+#   ifdef PHYTO_RESP
+        Qsms11 = Qsms11 - OXR*resps3*o2nh(ng)                          
+#   endif
 #  endif
 #endif
 
 #ifdef CARBON
-        Qsms12= - (nps1+rps1+nps2+rps2)*c2n(ng)+OXR*(excrz1+excrz2)    &
-     &          *c2n(ng)+ OXR*midd*c2n(ng)
+!        Qsms12= - (nps1+rps1+nps2+rps2)*c2n(ng)+OXR*(excrz1+excrz2)    &
+!     &          *c2n(ng)+ OXR*midd*c2n(ng)
+! added effect of ingestion-related excretion
+         Qsms12= - (nps1+rps1+nps2+rps2)*c2n(ng)+ OXR*midd*c2n(ng)    &
+     &           +OXR*(excrz1+excrz2+excrz1_2+excrz2_2)*c2n(ng)
+# ifdef PHYTO_RESP
+         Qsms12 = Qsms12 + OXR*(resps1 +resps2)*c2n(ng)                            
+# endif
         Qsms13= - Qsms1 + Qsms3
 #  ifdef HAB
         Qsms12 = Qsms12 - (nps3 + rps3)*c2n(ng)
+#    ifdef PHYTO_RESP
+        Qsms12 = Qsms12 + OXR*resps3*c2n(ng)                            
+#    endif
 #  endif
 #endif
 !
@@ -1169,130 +1244,135 @@
 
         if(Bio(i,k,iChl1) .ge. 0.01_r8) then
           Qsms14 = + npchl1 - morchl1 - gchl1zz1 - aggregchl1
+#ifdef PHYTO_RESP
+	    Qsms14 = Qsms14 - respchl1
+#endif
         else
           Qsms14 = npchl1
         endif
         
         if(Bio(i,k,iChl2) .ge. 0.01_r8) then
           Qsms15 = + npchl2 - morchl2 - gchl2zz2 - aggregchl2
+#ifdef PHYTO_RESP
+	    Qsms15 = Qsms15 - respchl2
+#endif
         else
           Qsms15 = npchl2
         endif
 #ifdef HAB
-        if(Bio(i,k,iChl3) .ge. 0.01_r8) then
+        IF(Bio(i,k,iChl3) .ge. 0.01_r8) then
             Qsms17 = + npchl3 - morchl3 - gchl3zz2 - aggregchl3
-        else
+# ifdef PHYTO_RESP
+		Qsms17 = Qsms17 - respchl3
+# endif
+        ELSE
             Qsms17 = npchl3
-        endif
-#endif
-        NQsms1 = 0.0_r8
-        NQsms3 = 0.0_r8
-        NQsms4 = 0.0_r8
-        NQsms5 = 0.0_r8
-        NQsms6 = 0.0_r8
-        NQsms7 = 0.0_r8 
-        NQsms8 = 0.0_r8
-        NQsms2 = 0.0_r8
-        NQsms9 = 0.0_r8
-        NQsms10= 0.0_r8
-#ifdef OXYGEN
-        NQsms11= 0.0_r8
-#endif
-
-#ifdef CARBON
-        NQsms12= 0.0_r8
-        NQsms13= - NQsms1 + NQsms3
-#endif
-        
-!
-!      Chla : Xiu and Geng
-!        
-        NQsms14 = 0.0_r8
-        NQsms15 = 0.0_r8
-#ifdef HAB
-        NQsms16 = 0.0_r8
-        NQsms17 = 0.0_r8
-#endif
-
-        sms1 = Q10*Qsms1 + NQsms1
-        sms2 = Q10*Qsms2 + NQsms2
-        sms3 = Q10*Qsms3 + NQsms3
-        sms4 = Q10*Qsms4 + NQsms4
-        sms5 = Q10*Qsms5 + NQsms5
-        sms6 = Q10*Qsms6 + NQsms6
-        sms7 = Q10*Qsms7 + NQsms7
-        sms8 = Q10*Qsms8 + NQsms8
-        sms9 = Q10*Qsms9 + NQsms9
-        sms10= Q10*Qsms10 + NQsms10
-#ifdef OXYGEN
-        sms11= Q10*Qsms11 + NQsms11
-#endif
-
-#ifdef CARBON
-        sms12= Q10*Qsms12 + NQsms12
-        sms13= Q10*Qsms13 + NQsms13     
-#endif
-!
-!      Chla : Xiu and Geng
-!
-       sms14 = Q10*Qsms14 + NQsms14
-       sms15 = Q10*Qsms15 + NQsms15
-#ifdef HAB
-       sms16 = Q10*Qsms16 + NQsms16
-       sms17 = Q10*Qsms17 + NQsms17
+        ENDIF
 #endif
        
 #ifdef DIAGNOSTICS_BIO
         DiaBio3d(i,j,k,iPPro1)=DiaBio3d(i,j,k,iPPro1)+                 &
 # ifdef WET_DRY
-        &            rmask_io(i,j)*                                    &
-# endif        
-        &         (nps1 + rps1)*dtdays
+     &            rmask_io(i,j)*                                       &
+# endif
+     &         (nps1 + rps1)*dtdays
         
         DiaBio3d(i,j,k,iPPro2)=DiaBio3d(i,j,k,iPPro2)+                 &
 # ifdef WET_DRY
-        &            rmask_io(i,j)*                                    &
+     &            rmask_io(i,j)*                                       &
 # endif        
-        &            (nps2 + rps2)*dtdays
-        
+     &            (nps2 + rps2)*dtdays
         
         DiaBio3d(i,j,k,iNO3u)=DiaBio3d(i,j,k,iNO3u)+                   &
 # ifdef WET_DRY
-        &              rmask_io(i,j)*                                  &
+     &              rmask_io(i,j)*                                     &
 # endif        
-        &              (nps1+nps2)*dtdays
+     &              (nps1+nps2)*dtdays
+              
+# ifdef OXYGEN
+        DiaBio3d(i,j,k,iO2pr)=DiaBio3d(i,j,k,iO2pr)+                   &
+#  ifdef WET_DRY
+     &              rmask_io(i,j)*                                     &
+#  endif
+     &   ((nps1+nps2)*o2no(ng)+(rps1+rps2)*o2nh(ng))*dtdays
+#  ifdef HAB
+        DiaBio3d(i,j,k,iO2pr)=DiaBio3d(i,j,k,iO2pr)+                   &
+#   ifdef WET_DRY
+     &              rmask_io(i,j)*                                     &
+#   endif
+     &   (nps3*o2no(ng)+rps3*o2nh(ng))*dtdays
+#  endif
+              
+        DiaBio3d(i,j,k,initri)=DiaBio3d(i,j,k,initri)+                 &
+#  ifdef WET_DRY
+     &              rmask_io(i,j)*                                     &
+#  endif
+     &       (-2.0_r8*OXR*nitrif)*dtdays
+              
+        DiaBio3d(i,j,k,iremin)=DiaBio3d(i,j,k,iremin)+                 &
+#  ifdef WET_DRY
+     &              rmask_io(i,j)*                                     &
+#  endif
+     &       (-OXR*midd*o2nh(ng))*dtdays
+        
+        DiaBio3d(i,j,k,izoopl)=DiaBio3d(i,j,k,izoopl)+                 &
+#  ifdef WET_DRY
+     &              rmask_io(i,j)*                                     &
+#  endif
+     &       (-OXR*(excrz1 + excrz2                                    &
+     &       +excrz1_2 + excrz2_2)*o2nh(ng)*dtdays)
+#  ifdef PHYTO_RESP    
+        DiaBio3d(i,j,k,iphyres)=DiaBio3d(i,j,k,iphyres)+               &
+#   ifdef WET_DRY
+     &              rmask_io(i,j)*                                     &
+#   endif 
+#   ifdef HAB
+     &       (-OXR*(resps1 + resps2 +resps3)*o2nh(ng)*dtdays)                        
+#   else
+     &       (-OXR*(resps1 + resps2)*o2nh(ng)*dtdays)
+#   endif
+#  endif
+# endif
+              
+        IF ( (MOD(iic(ng),nDIA(ng)).eq.0) ) THEN
+! divide diagnostic sums by the number of bio iterations.
+              DO ivar=1,NDbio3d
+                DiaBio3d(i,j,k,ivar)=DiaBio3d(i,j,k,ivar)/             &
+     &            (REAL(BioIter(ng),r8))
+              END DO
+        END IF
 #endif
-
+              
 ! update values 
       
-        Bio(i,k,iNO3_)=Bio(i,k,iNO3_)+dtdays*sms1
-        Bio(i,k,iSiOH)=Bio(i,k,iSiOH)+dtdays*sms2
-        Bio(i,k,iNH4_)=Bio(i,k,iNH4_)+dtdays*sms3
-        Bio(i,k,iSphy)=Bio(i,k,iSphy)+dtdays*sms4
-        Bio(i,k,iLphy)=Bio(i,k,iLphy)+dtdays*sms5
-        Bio(i,k,iSzoo)=Bio(i,k,iSzoo)+dtdays*sms6
-        Bio(i,k,iLzoo)=Bio(i,k,iLzoo)+dtdays*sms7
-        Bio(i,k,iSDet)=Bio(i,k,iSDet)+dtdays*sms8
-        Bio(i,k,iopal)=Bio(i,k,iopal)+dtdays*sms9
-        Bio(i,k,iPO4_)=Bio(i,k,iPO4_)+dtdays*sms10
+        Bio(i,k,iNO3_)=Bio(i,k,iNO3_)+dtdays*Qsms1
+        Bio(i,k,iSiOH)=Bio(i,k,iSiOH)+dtdays*Qsms2
+        Bio(i,k,iNH4_)=Bio(i,k,iNH4_)+dtdays*Qsms3
+        Bio(i,k,iSphy)=Bio(i,k,iSphy)+dtdays*Qsms4
+        Bio(i,k,iLphy)=Bio(i,k,iLphy)+dtdays*Qsms5
+        Bio(i,k,iSzoo)=Bio(i,k,iSzoo)+dtdays*Qsms6
+        Bio(i,k,iLzoo)=Bio(i,k,iLzoo)+dtdays*Qsms7
+        Bio(i,k,iSDet)=Bio(i,k,iSDet)+dtdays*Qsms8
+        Bio(i,k,iopal)=Bio(i,k,iopal)+dtdays*Qsms9
+        Bio(i,k,iPO4_)=Bio(i,k,iPO4_)+dtdays*Qsms10
 
 #ifdef OXYGEN
-        Bio(i,k,iOxyg)=Bio(i,k,iOxyg)+dtdays*sms11
+        Bio(i,k,iOxyg)=Bio(i,k,iOxyg)+dtdays*Qsms11
 #endif
 #ifdef CARBON
-        Bio(i,k,iTIC_)=Bio(i,k,iTIC_)+dtdays*sms12
-#ifdef TALK_NONCONSERV
-        Bio(i,k,iTAlk)=Bio(i,k,iTAlk)+dtdays*sms13
-#endif	
+        Bio(i,k,iTIC_)=Bio(i,k,iTIC_)+dtdays*Qsms12
+# ifdef TALK_NONCONSERV
+        Bio(i,k,iTAlk)=Bio(i,k,iTAlk)+dtdays*Qsms13
+# endif	
 #endif
 !
 !      Chla : Xiu and Geng
 !
-        Bio(i,k,iChl1)=Bio(i,k,iChl1)+dtdays*sms14
-        Bio(i,k,iChl2)=Bio(i,k,iChl2)+dtdays*sms15
+        Bio(i,k,iChl1)=Bio(i,k,iChl1)+dtdays*Qsms14
+        Bio(i,k,iChl2)=Bio(i,k,iChl2)+dtdays*Qsms15
 #ifdef HAB
-        Bio(i,k,iHphy)=Bio(i,k,iHphy)+dtdays*sms16
-        Bio(i,k,iChl3)=Bio(i,k,iChl3)+dtdays*sms17
+        Bio(i,k,iHphy)=Bio(i,k,iHphy)+dtdays*Qsms16
+        Bio(i,k,iChl3)=Bio(i,k,iChl3)+dtdays*Qsms17
 #endif
         END DO  !k loop
       END DO  !i loop
@@ -1389,9 +1469,9 @@
 
       CALL CO2_flux (Istr, Iend, LBi, UBi, LBj, UBj,                   &
      &                     IminS, ImaxS, j,                            &
-#ifdef MASKING
+# ifdef MASKING
      &                     rmask,                                      &
-#endif
+# endif
      &                     Bio(LBi:,k,itemp), Bio(LBi:,k,isalt),   &
      &                     Bio(LBi:,k,iTIC_), Bio(LBi:,k,iTAlk),   &
      &                     Bio(LBi:,k,iPO4_), Bio(LBi:,k,iSiOH),   &
@@ -1411,25 +1491,14 @@
 #  endif
      &                          co2flx(i)*dtdays
      
-            DiaBio2d(i,j,ipCO2)=pco2s(i)
+!            DiaBio2d(i,j,ipCO2)=pco2s(i)
+              DiaBio2d(i,j,ipCO2)=pco2sf(i)
 #  ifdef WET_DRY
             DiaBio2d(i,j,ipCO2)=DiaBio2d(i,j,ipCO2)*rmask_io(i,j)
 #  endif
 # endif
 	  
       END DO
-
-!#ifdef TALK_NONCONSERV       	       
-!     adjust the alkalinity
-!     DO i=Istr,Iend
-!         DO k=1,N(ng)
-!       	cff0=Bio_bak(i,k,iNO3_)-Bio(i,k,iNO3_)-                    &
-!     &       (Bio_bak(i,k,iNH4_)-Bio(i,k,iNH4_))
-!	        Bio(i,k,iTAlk)=Bio(i,k,iTAlk)+cff0
-!         END DO
-!      END DO
-!#endif
-
 #endif
 ! 
 !-----------------------------------------------------------------------
@@ -1451,6 +1520,9 @@
             DO k=1,N(ng)
               DO i=Istr,Iend
                 qc(i,k)=Bio(i,k,indx)
+!                if( i.eq.309.and.j.eq.387.and.indx.eq.11 ) then
+!		    	write(*,*)'prior: i=',i,'j=',j,'k=',k,'bio=',Bio(i,k,indx)
+!		    end if
               END DO
             END DO
 !
@@ -1608,6 +1680,9 @@
             DO k=1,N(ng)
               DO i=Istr,Iend
                 Bio(i,k,indx)=qc(i,k)+(FC(i,k)-FC(i,k-1))*Hz_inv(i,k)
+!                if( i.eq.309.and.j.eq.387.and.indx.eq.11 ) then
+!		    	write(*,*)'after: i=',i,'j=',j,'k=',k,'bio=',Bio(i,k,indx)
+!		    end if
               END DO
             END DO
 #  ifdef SEDBIO
@@ -1647,10 +1722,25 @@
             ! compute carbon, phosporous flux from nitrogen flux
             FPOC(i)= FPON(i)*c2n(ng)
             FPOP(i)= FPON(i)*p2n(ng)
+                                   
+# ifdef DIAGNOSTICS_BIO
+            DiaBio2d(i,j,ibPONfx)=DiaBio2d(i,j,ibPONfx)+               &
+#  ifdef WET_DRY
+     &                          rmask_io(i,j)*                         &
+#  endif
+     &                          FPON(i)*dtdays
+                                   
+            DiaBio2d(i,j,ibPSifx)=DiaBio2d(i,j,ibPSifx)+               &
+#  ifdef WET_DRY
+     &                          rmask_io(i,j)*                         &
+#  endif
+     &                          FPSi(i)*dtdays
+# endif
+                                   
         END DO
               
 # ifdef SEDBIO
-
+	  
         call sediment_bio(ng, Istr, Iend, LBi, UBi,                    &
      &                      dtdays,                                    &
 #   ifdef MASKING
@@ -1671,30 +1761,30 @@
 #   ifdef CARBON
     &                      Bio(LBi:,1,iTIC_), bTIC(LBi:,j),            &
     &                      JTIC(LBi:,j),                               &
-#   ifdef TALK_NONCONSERV
+#    ifdef TALK_NONCONSERV
     &                      Bio(LBi:,1,iTAlk), bAlk(LBi:,j),            &
     &                      JAlk(LBi:,j))
-#   endif
+#    endif
 #   endif
 
 ! WRITTEN IN SEDIMENT_BIOLOGY.F AS FOLLOWS-------------------------------
 ! SUBROUTINE sediment_bio(ng, Istr, Iend, LBi, UBi,                &    
 ! &                      dtdays,                                   &    
-!#   ifdef MASKING
+!   ifdef MASKING
 !     &                      rmask,                                     &    
-!#   endif
+!   endif
 !     &                      temp, DOX, dNO3, dNH4, dPO4, dSiO4,        &    
 !     &                      FPOC, FPON, FPOP, FPSi,                    &    
 !     &                      bPOC, bPON, bPOP, bPSi,                    &    
 !     &                      bNO3, bNH4, bPO4, bSi,                     &    
 !     &                      bUC, bUN, bUP, bUS,                        &    
 !     &                      JNO3, JNH4, JPO4, JSi, SOD,                &    
-!#ifdef CARBON
+!ifdef CARBON
 !     &                      dTIC, bTIC, JTIC,                          &    
-!#ifdef TALK_NONCONSERV
+!ifdef TALK_NONCONSERV
 !     &                      dAlk, bAlk, JAlk)
-!#endif
-!#endif
+!endif
+!endif
 ! -----------------------------------------------------------------------
 ! ORDER OF ARGUMENTS:           temp, oxygen, dNO3, dNH4, dPO4, dSiO4, FPOC, FPON,
 !                               FPOP, FPSi, bPOC, bPON, bPOP, bPSi, bNO3, bNH4,
@@ -1720,19 +1810,68 @@
             ! TIC and Alk added on 2/28/23 by A. Baskind
             Bio(i,k,iTIC_)=Bio(i,k,iTIC_)+dtdays*JTIC(i,j)*Hz_inv(i,k)
             Bio(i,k,iTAlk)=Bio(i,k,iTAlk)+dtdays*JAlk(i,j)*Hz_inv(i,k)
+        
+! Diagnostics
+#  ifdef DIAGNOSTICS_BIO
+            DiaBio2d(i,j,ibNO3fx)=DiaBio2d(i,j,ibNO3fx)+               &
+#   ifdef WET_DRY
+     &                          rmask_io(i,j)*                         &
+#   endif
+     &                          JNO3(i,j)*dtdays
+            DiaBio2d(i,j,ibNH4fx)=DiaBio2d(i,j,ibNH4fx)+               &
+#   ifdef WET_DRY
+     &                          rmask_io(i,j)*                         &
+#   endif
+     &                          JNH4(i,j)*dtdays
+            DiaBio2d(i,j,ibPO4fx)=DiaBio2d(i,j,ibPO4fx)+               &
+#   ifdef WET_DRY
+     &                          rmask_io(i,j)*                         &
+#   endif
+     &                          JPO4(i,j)*dtdays
+            DiaBio2d(i,j,ibSiO2fx)=DiaBio2d(i,j,ibSiO2fx)+             &
+#   ifdef WET_DRY
+     &                          rmask_io(i,j)*                         &
+#   endif
+     &                          JSi(i,j)*dtdays
+            DiaBio2d(i,j,ibTICfx)=DiaBio2d(i,j,ibTICfx)+               &
+#   ifdef WET_DRY
+     &                          rmask_io(i,j)*                         &
+#   endif
+     &                          JTIC(i,j)*dtdays
+            DiaBio2d(i,j,ibAlkfx)=DiaBio2d(i,j,ibAlkfx)+               &
+#   ifdef WET_DRY
+     &                          rmask_io(i,j)*                         &
+#   endif
+     &                          JAlk(i,j)*dtdays
+! minus sign for SOD:
+            DiaBio2d(i,j,ibO2fx)=DiaBio2d(i,j,ibO2fx)-                 &
+#   ifdef WET_DRY
+     &                          rmask_io(i,j)*                         &
+#   endif
+     &                          SOD(i,j)*dtdays
+
+            IF ( (MOD(iic(ng),nDIA(ng)).eq.0) ) THEN
+            ! divide 2d diagnostic sums by the number of bio iterations.
+                DO ivar=1,NDbio2d
+                    DiaBio2d(i,j,ivar)=DiaBio2d(i,j,ivar)/             &
+     &            (REAL(BioIter(ng),r8))
+                END DO
+            END IF
+#  endif                                   
         END DO
 # else
 ! for non sediment bio case, estimate sediment oxygen consumption as !
 ! function of temperature (as was done in v1 of bio_UMAINE15)
 ! included multiplication by Q10 factor to be consistent with v1.
+! use q10 for phyto respiration
         k=1
         DO i=Istr,Iend
-            Q10=exp(0.069_r8*(Bio(i,k,itemp)-25.0_r8))
+!            Q10=exp(0.069_r8*(Bio(i,k,itemp)-25.0_r8))
             SOC=0.614_r8*(2.0_r8**(Bio(i,k,itemp)/5.474_r8))
-            Bio(i,k,iNH4_)=Bio(i,k,iNH4_)+dtdays*0.036_r8*SOC*Q10
-            Bio(i,k,iOxyg)=Bio(i,k,iOxyg)-dtdays*SOC*Q10
+            Bio(i,k,iNH4_)=Bio(i,k,iNH4_)+dtdays*0.036_r8*SOC*q10pr
+            Bio(i,k,iOxyg)=Bio(i,k,iOxyg)-dtdays*SOC*q10pr
 #  ifdef CARBON
-            Bio(i,k,iTIC_)=Bio(i,k,iTIC_)+dtdays*0.9475_r8*SOC*Q10
+            Bio(i,k,iTIC_)=Bio(i,k,iTIC_)+dtdays*0.9475_r8*SOC*q10pr
 #  endif
         END DO
 # endif
@@ -1770,6 +1909,12 @@
               t(i,j,k,nnew,indx)=t(i,j,k,nnew,indx)+                   &
      &            (Bio(i,k,indx)-Bio_bak(i,k,indx))*  Hz(i,j,k)
 
+! Note that following test for NaN only works if debugging is on
+!              if( isnan(t(i,j,k,nnew,indx))) then
+!                write(*,*)' time = ',time(ng),' indx = ',indx,'NAN found'
+!              end if
+
+              
             END DO
           END DO
         END DO
@@ -1800,16 +1945,44 @@
             sedFlux(i,j,ibJPO4)=JPO4(i,j)
             sedFlux(i,j,ibJSi)=JSi(i,j)
             sedFlux(i,j,ibSOD)=SOD(i,j)
-#ifdef CARBON
+# ifdef CARBON
             sedPoreWaterCon(i,j,ibTIC)=bTIC(i,j)    ! Added 2/28/23 by A.Baskind
             sedFlux(i,j,ibJTIC)=JTIC(i,j)           ! Added 2/28/23 by A.Baskind
-#ifdef TALK_NONCONSERV
+#  ifdef TALK_NONCONSERV
             sedPoreWaterCon(i,j,ibAlk)=bAlk(i,j)    ! Added 2/28/23 by A.Baskind
             sedFlux(i,j,ibJAlk)=JAlk(i,j)           ! Added 2/28/23 by A.Baskind
-#endif
-#endif
+#  endif
+# endif
         END DO
       END DO
+# ifdef DISTRIBUTE
+!
+! exchange sediment biology variables between tiles to fill in ghost points
+	call mp_exchange3d(ng, tile, iNLM, 1,					&
+     &			 LBi, UBi, LBj, UBj, 1, NPWC,				&
+     &			 NghostPoints, EWperiodic(ng), NSperiodic(ng),  &
+     &			 sedPoreWaterCon)
+
+	call mp_exchange3d(ng, tile, iNLM, 1,					&
+     &			 LBi, UBi, LBj, UBj, 1, NSF,				&
+     &			 NghostPoints, EWperiodic(ng), NSperiodic(ng),  &
+     &			 sedFlux)
+     
+      call mp_exchange4d(ng, tile, iNLM, 1,					&
+     &			 LBi, UBi, LBj, UBj, 1, nspc, 1, NDR,		&
+     &			 NghostPoints, EWperiodic(ng), NSperiodic(ng),  &
+     &			 sedDecayRate)
+     
+      call mp_exchange4d(ng, tile, iNLM, 1,					&
+     &			 LBi, UBi, LBj, UBj, 1, nspc, 1, NPOM,		&
+     &			 NghostPoints, EWperiodic(ng), NSperiodic(ng),  &
+     &			 sedPOM)
+     
+     call mp_exchange3d(ng, tile, iNLM, 1,					&
+     &			 LBi, UBi, LBj, UBj, 1, N(ng),	   	      &
+     &			 NghostPoints, EWperiodic(ng), NSperiodic(ng),  &
+     &			 kdpar)
+# endif   
 #endif
       RETURN
       
@@ -1823,9 +1996,9 @@
 #ifdef CARBON
         subroutine   CO2_flux (Istr, Iend, LBi, UBi, LBj, UBj,         &
      &                     IminS, ImaxS, j,                            &
-#ifdef MASKING
+# ifdef MASKING
      &                     rmask,                                      &
-#endif
+# endif
      &                     t, ss,dic, alk,po4,si,rho,kw660,            &
      &                     ppo, xco2,                                  &
      &                     co2ex,pco2sf)
@@ -1915,11 +2088,11 @@
          si2 = si(i)/1000.0_r8
          
 !         !not work well for low s
-!         if (ss(i) .lt. 5.0_r8) then
+!         IF (ss(i) .lt. 5.0_r8) then
 !            s(i)=5.0_r8
-!         else
+!         ELSE
             s(i)=ss(i)
-!         endif
+!         ENDIF
          
 #  ifdef MASKING
         IF (rmask(i,j).gt.0.0_r8) THEN
@@ -1947,7 +2120,8 @@
       kwco2=kwco2*0.01_r8*24.0_r8                        
 
       phlo = 6.0_r8
-      phhi = 9.0_r8
+!      phhi = 9.0_r8
+      phhi = 11.0_r8
 ! surface density (kg/m^3)
       rhos=1000_r8+rho(i)
 
@@ -2217,7 +2391,8 @@
 !
       x1 = 10.0_r8**(-phhi)
       x2 = 10.0_r8**(-phlo)
-      xacc = 0.0000000001_r8
+!      xacc = 0.0000000001_r8
+      xacc = 0.00000000001_r8
       call drtsafe(x1,x2,xacc,                                         &
     & k0,k1,k2,k1p,k2p,k3p,st,ks,dic,bt,kb,kw,pt,sit,ksi,ft,kf,ta,ff,  &
     & htotal )
@@ -2359,6 +2534,19 @@
 !
 !      df = dfn/dx
 !
+!      df = ((k1*dic*b) - k1*x*dic*db)/b2 -                             &
+!     &           2.0_r8*dic*k12*db/b2 -                                &
+!     &           bt/kb/(1.0_r8+x/kb)**2.0_r8 -                         &
+!     &           kw/x2 +                                               &
+!     &           (pt*k12p*(a - x*da))/a2 -                             &
+!     &           2.0_r8*pt*k123p*da/a2 -                               &
+!     &           sit/ksi/(1.0_r8+x/ksi)**2.0_r8 -                      &
+!     &           1.0_r8/c +                                            &
+!     &           st*(1.0_r8 + ks/x/c)**(-2.0_r8)*(ks/c/x2) +           &
+!     &           ft*(1.0_r8 + kf/x)**(-2.0_r8)*kf/x2 -                 &
+!     &           pt*x2*(3.0_r8*a-x*da)/a2
+
+! DU: slightly modified to correct two sign errors (small terms)
       df = ((k1*dic*b) - k1*x*dic*db)/b2 -                             &
      &           2.0_r8*dic*k12*db/b2 -                                &
      &           bt/kb/(1.0_r8+x/kb)**2.0_r8 -                         &
@@ -2366,10 +2554,10 @@
      &           (pt*k12p*(a - x*da))/a2 -                             &
      &           2.0_r8*pt*k123p*da/a2 -                               &
      &           sit/ksi/(1.0_r8+x/ksi)**2.0_r8 -                      &
-     &           1.0_r8/c +                                            &
-     &           st*(1.0_r8 + ks/x/c)**(-2.0_r8)*(ks/c/x2) +           &
+     &           1.0_r8/c -                                            &
+     &           st*(1.0_r8 + ks/x/c)**(-2.0_r8)*(ks/c/x2) -           &
      &           ft*(1.0_r8 + kf/x)**(-2.0_r8)*kf/x2 -                 &
-     &           pt*x2*(3.0_r8*a-x*da)/a2               
+     &           pt*x2*(3.0_r8*a-x*da)/a2
      
       return
       END SUBROUTINE ta_iter_1
@@ -2595,18 +2783,22 @@
       END DO I_LOOP
       RETURN
       END SUBROUTINE O2_flux
-# endif
+#endif
 
 #ifdef OPTICS_OP1
-      subroutine optic_property(Istr, Iend, ng,                         &
+      subroutine kdPAR_compute(Istr, Iend, ng,                          &
      &                       LBi, UBi, LBj, UBj, UBk,                   &
      &                       IminS, ImaxS, j,                           &
 #  ifdef MASKING
      &                       rmask,                                     &
 #  endif
+#  ifdef READ_ZENITH
+     &                       zenith_ang,                                &
+#  endif
      &                       salt,                                      &
      &                       hzl,                                       &
-     &                       chl1, chl2,                                &  
+     &                       z_r,                                       &
+     &                       chl1, chl2,                                &
      &                       s1, s2,                                    &
      &                       ddn,                                       &
 #  ifdef HAB
@@ -2616,20 +2808,20 @@
 !
 !***********************************************************************
 !                                                                      !
-!  This routine computes water optical properties                      !
+!  This routine computes water extinction coefficient kd               !
 !                                                                      !
-!  By Peng Xiu                                                !
+!  Dave Ullman (8/2024), based on code by Peng Xiu                      !
 !                                                                      !
 !***********************************************************************
 !
       USE mod_kinds
       USE mod_param
+      USE mod_biology
 
       implicit none
 !
 !  Imported variable declarations.
 !
-      integer, parameter :: mmax = 31
       integer,  intent(in) :: ng
       integer,  intent(in) :: LBi, UBi, LBj, UBj, UBk, IminS, ImaxS
       integer,  intent(in) :: Istr, Iend, j
@@ -2638,8 +2830,12 @@
 #   ifdef MASKING
       real(r8), intent(in) :: rmask(LBi:,LBj:)
 #   endif
+#   ifdef READ_ZENITH
+      real(r8), intent(in) :: zenith_ang(LBi:,LBj:)
+#   endif
       real(r8), intent(in) :: salt(LBi:,:)
       real(r8), intent(in) :: hzl(LBi:,:)
+      real(r8), intent(in) :: z_r(LBi:,LBj:,:)
       real(r8), intent(in) :: chl1(LBi:,:)
       real(r8), intent(in) :: chl2(LBi:,:)
       real(r8), intent(in) :: s1(LBi:,:)
@@ -2654,12 +2850,12 @@
 #   ifdef MASKING
       real(r8), intent(in) :: rmask(LBi:UBi,LBj:UBj)
 #   endif
-!      real(r8), intent(in) :: T(LBi:UBi)
-!      real(r8), intent(in) :: S(LBi:UBi)
-!      real(r8), intent(in) :: O2(LBi:UBi)
-
+#   ifdef READ_ZENITH
+      real(r8), intent(in) :: zenith_ang(LBi:UBi,LBj:UBj)
+#   endif
       real(r8), intent(in) :: salt(LBi:UBi,N(ng))
       real(r8), intent(in) :: hzl(LBi:UBi,N(ng))
+      real(r8), intent(in) :: z_r(LBi:UBi,LBj:UBj,N(ng))
       real(r8), intent(in) :: chl1(LBi:UBi,N(ng))
       real(r8), intent(in) :: chl2(LBi:UBi,N(ng))
       real(r8), intent(in) :: s1(LBi:UBi,N(ng))
@@ -2671,34 +2867,26 @@
       real(r8), intent(in) :: ddn(LBi:UBi,N(ng))
       real(r8), intent(out) :: kd(LBi:UBi,N(ng))
 #  endif
-
 !
 !  Local variable declarations.
 !
+      integer :: i, k
 
-      integer :: i, k, otrc
-
-      real(r8), dimension(N(ng)) :: kpar1
-      real(r8), dimension(N(ng)) :: kpar2
-      real(r8), dimension(N(ng),mmax) :: bbw
-      real(r8), dimension(N(ng),mmax) :: achl1
-      real(r8), dimension(N(ng),mmax) :: achl2
-      real(r8), dimension(N(ng),mmax) :: ap
-      real(r8), dimension(N(ng),mmax) :: ap1
-      real(r8), dimension(N(ng),mmax) :: ap2
-      real(r8), dimension(N(ng),mmax) :: adet
-      real(r8), dimension(N(ng),mmax) :: acdom
-      real(r8), dimension(N(ng),mmax) :: bbp1
-      real(r8), dimension(N(ng),mmax) :: bbp2
+      real(r8), dimension(N(ng)) :: bbw
+      real(r8), dimension(N(ng)) :: achl1
+      real(r8), dimension(N(ng)) :: achl2
+      real(r8), dimension(N(ng)) :: ap
+      real(r8), dimension(N(ng)) :: adet
+      real(r8), dimension(N(ng)) :: acdom
+      real(r8), dimension(N(ng)) :: bbp1
+      real(r8), dimension(N(ng)) :: bbp2
 #   ifdef HAB
-      real(r8), dimension(N(ng),mmax) :: achl3
-      real(r8), dimension(N(ng),mmax) :: ap3
-      real(r8), dimension(N(ng),mmax) :: bbp3
+      real(r8), dimension(N(ng)) :: achl3
+      real(r8), dimension(N(ng)) :: bbp3
 #   endif
-      real(r8), dimension(LBi:UBi,N(ng),mmax) :: a_abs
-      real(r8), dimension(LBi:UBi,N(ng),mmax) :: bbp
-      real(r8), dimension(LBi:UBi,N(ng),mmax) :: bb
-      real(r8), dimension(LBi:UBi,N(ng),mmax) :: bts
+      real(r8), dimension(N(ng)) :: a_abs
+      real(r8), dimension(N(ng)) :: bbp
+      real(r8), dimension(N(ng)) :: bb
 
       real(r8), parameter :: kapa0=-0.057_r8
       real(r8), parameter :: kapa1=0.482_r8
@@ -2711,134 +2899,127 @@
       real(r8), parameter :: alpha2=-0.667_r8
 !thetaa: solar zenith angle radians
 !      real(r8), parameter :: thetaa=5.0_r8*3.1416_r8/180.0_r8 ! original
-      real(r8), parameter :: thetaa=41.5_r8*3.1416_r8/180.0_r8
-      real(r8), parameter :: massPOC   = 12.0_r8
+!      real(r8), parameter :: thetaa=41.5_r8*3.1416_r8/180.0_r8)
+# if !defined READ_ZENITH
+      real(r8), parameter :: zenith_ang=41.5_r8     !constant solar zenith angle
+# endif
+      real(r8), parameter :: deg2rad=3.141592654_r8/180.0_r8
+      real(r8), parameter :: massPOC=12.0_r8       !atomic weight of carbon
       real(r8), parameter :: bbg=0.00035_r8
-      real(r8), parameter :: r_phy_POC=0.3_r8
+      real(r8), parameter :: r_phy_POC=0.3_r8      ! ratio of phyto. carbon to total POC
+      real(r8), parameter :: mmol2mol=0.001_r8     ! mmole to mol conversion
+      real(r8), parameter :: adet_ss=0.011_r8      ! spectral slope for adet
+      real(r8), parameter :: acdom_ss=0.020_r8     ! spectral slope for aCDOM
+      real(r8), parameter :: a_cdom_sal=4.372_r8   ! constant term for aCDOM(412) from salt
+      real(r8), parameter :: b_cdom_sal=-0.129_r8   ! linear term for aCDOM(412) from salt
+      real(r8), parameter :: chl_exp=0.65_r8       ! exponent for chl absorption
+      real(r8), parameter :: bbrat_sw=0.5_r8       ! backscattering ratio for seawater
+      real(r8), parameter :: a_bbw_salt=1.0_r8     ! constant term for bbw from salt
+      real(r8), parameter :: b_bbw_salt=0.00811_r8 ! linear term for bbw from salt
 
-      real(r8), dimension(mmax) :: aw_abs
-      real(r8), dimension(mmax) :: bw_abs
-      real(r8), dimension(mmax) :: achlstar
-      real(r8), dimension(mmax) :: adetstar
-      real(r8) :: cff
+! values at 490 nm:
+      real(r8), parameter :: aw_abs=0.0150_r8
+      real(r8), parameter :: bw_abs=0.0031_r8
+      real(r8), parameter :: achlstar=0.7500_r8
+      real(r8), parameter :: adetstar=0.1000_r8
 
-        integer :: arr_size
+      real(r8) :: cff, adet_fac1, adet_fac2, acdom_fac
+      real(r8) :: bp1_fac1,bp1_exp,bp2_fac1,bp2_exp,bp_fac
+      real(r8) :: aa_int,bb_int,z_int,aa_avg,bb_avg
+      real(r8) :: kpar1,kpar2,thetaa,acdtmp
 
-      data aw_abs/0.0066,0.0047,0.0045,0.0050,0.0063,0.0092,0.0098,  &
-     &0.0106,0.0127,0.0150,0.0204,0.0325,0.0409,0.0434,0.0474,       &
-     &0.0565,0.0619,0.0695,0.0896,0.1351,0.2224,0.2644,0.2755,       &
-     &0.2916,0.3180,0.3400,0.4100,0.4390,0.4650,0.5160,0.6240/
-      data bw_abs/0.0076,0.0068,0.0061,0.0055,0.0049,0.0045,0.0041,  &
-     &0.0037,0.0034,0.0031,0.0029,0.0026,0.0024,0.0022,0.0021,       &
-     &0.0019,0.0018,0.0017,0.0016,0.0015,0.0014,0.0013,0.0012,       &
-     &0.0011,0.0010,0.0010,0.0008,0.0008,0.0007,0.0007,0.0007/
-      data achlstar/0.6870,0.8280,0.9130,0.9730,1.0000,0.9440,0.9170,&
-     &0.8700,0.7980,0.7500,0.6680,0.6180,0.5280,0.4740,0.4160,       &
-     &0.3570,0.2940,0.2760,0.2910,0.2820,0.2360,0.2520,0.2760,       &
-     &0.3170,0.3340,0.3560,0.4410,0.5950,0.5020,0.3290,0.2150/
-      data adetstar/0.1000,0.1000,0.1000,0.1000,0.1000,0.1000,0.1000,&
-     &0.1000,0.1000,0.1000,0.1000,0.1000,0.1000,0.1000,0.1000,       &
-     &0.1000,0.1000,0.1000,0.1000,0.1000,0.1000,0.1000,0.1000,       &
-     &0.1000,0.1000,0.1000,0.1000,0.1000,0.1000,0.1000,0.1000/
+! factors for detrital absorption calculation
+      adet_fac1=mmol2mol*massPOC*c2n(ng)
+      adet_fac2=exp(-adet_ss*(490-440))     ! exponential correction from 440 to 490 nm
+! factors for CDOM absorption calculation
+      acdom_fac=exp(-acdom_ss*(490-412))    ! exponential correction from 412 to 490 nm
+! factors for backscatter due to small phyto. (s1)
+      bp1_fac1=c2n(ng)*massPOC/(r_phy_POC*476935.8_r8)
+      bp1_exp=1.0_r8/1.277_r8;
+! factors for backscatter due to diatoms (s2)
+      bp2_fac1=c2n(ng)*massPOC/(r_phy_POC*17069.0_r8)
+      bp2_exp=1.0_r8/0.859_r8;
+      bp_fac=1/sqrt(490.0_r8/512.0_r8)        ! factor to convert from 512 nm to 490
 
       I_LOOP: DO i=Istr,Iend
         
 #  ifdef MASKING
         IF (rmask(i,j).gt.0.0_r8) THEN
 #  endif
+#  ifdef READ_ZENITH
+          thetaa=deg2rad*zenith_ang(i,j)
+#  else
+          thetaa=deg2rad*zenith_ang
+#  endif
+          do k=1,N(ng)
 
-      do k=1,N(ng)
-! DU: moved cff calculation outside otrc loop
-        !Hong et al., 2005 Pearl river, a(355)
-        !cff=-0.045_r8*salt(i,k)+1.8068_r8
-        !Bai 2013JGR
-        cff=max((salt(i,k)-35.595_r8)/(-14.151_r8),0.0_r8)
-
-        do otrc=1,mmax
-
-           achl1(k,otrc)=0.06_r8*achlstar(otrc)*(chl1(i,k))**0.65
-           achl2(k,otrc)=0.06_r8*achlstar(otrc)*(chl2(i,k))**0.65
-           
-          ap1(k,otrc)=achl1(k,otrc)
-          ap2(k,otrc)=achl2(k,otrc)
+          ! absorption due to chlorophyll
+             achl1(k)=0.06_r8*achlstar*(chl1(i,k))**chl_exp
+             achl2(k)=0.06_r8*achlstar*(chl2(i,k))**chl_exp
 #   ifdef HAB
-          achl3(k,otrc)=0.06_r8*achlstar(otrc)*(chl3(i,k))**0.65
-          ap3(k,otrc)=achl3(k,otrc)
-          ap(k,otrc)=ap1(k,otrc)+ap2(k,otrc)+ap3(k,otrc)
+             achl3(k)=0.06_r8*achlstar*(chl3(i,k))**chl_exp
+             ap(k)=achl1(k)+achl2(k)+achl3(k)
 #   else
-          ap(k,otrc)=ap1(k,otrc)+ap2(k,otrc)
+             ap(k)=achl1(k)+achl2(k)
 #   endif
 
-          adet(k,otrc)=adetstar(otrc)*ddn(i,k)*6.7_r8*0.001_r8*   &
-     &     massPOC                                                &
-     &    *exp(-0.011_r8*((400.0_r8+10.0_r8*(otrc-1))-440.0_r8))
-           
-           aCDOM(k,otrc)=(cff+0.016_r8)                              &
-     &    *exp(-0.0145_r8*((400.0_r8+10.0_r8*(otrc-1))-355.0_r8))
-        
-            bbp1(k,otrc)                                          &
-     & =( (s1(i,k)*6.7_r8*12.0_r8/r_phy_POC/476935.8_r8)          &
-     & **(1.0_r8/1.277_r8))                                       &
-     &    *( ((400.0_r8+10.0_r8*(otrc-1))/510.0_r8)**(-0.5_r8))
-                      
-                     bbp2(k,otrc)                                 &
-     & =( (s2(i,k)*6.7_r8*12.0_r8/r_phy_POC/17069.0_r8)           &
-     &  **(1.0_r8/0.859_r8))                                      &
-     & *( ((400.0_r8+10.0_r8*(otrc-1))/510.0_r8)**(-0.5_r8) )
+          ! absorption due to detritus
+             adet(k)=adetstar*ddn(i,k)*adet_fac1*adet_fac2
+          ! absorption due to CDOM
+!             aCDOM(k)=(a_cdom_sal+b_cdom_sal*salt(i,k))*acdom_fac
+          ! make sure aCDOM does not go negative (at very high salinity)
+             acdtmp=(a_cdom_sal+b_cdom_sal*salt(i,k))*acdom_fac
+             aCDOM(k)=MAX(acdtmp,0.0_r8)
+          ! total absorption coefficient
+             a_abs(k)=ap(k)+adet(k)+aCDOM(k)+aw_abs
+
+          ! backscatter due to small phytoplankton
+             bbp1(k)=( (s1(i,k)*bp1_fac1)**bp1_exp )*bp_fac
+          ! backscatter due to diatoms
+             bbp2(k)=( (s2(i,k)*bp2_fac1)**bp2_exp )*bp_fac
 #   ifdef HAB
-                     bbp3(k,otrc)                                 &
-     & =( (s3(i,k)*6.7_r8*12.0_r8/r_phy_POC/17069.0_r8)           &
-     &  **(1.0_r8/0.859_r8))                                      &
-     & *( ((400.0_r8+10.0_r8*(otrc-1))/510.0_r8)**(-0.5_r8) )
-      bbp(i,k,otrc)=bbp1(k,otrc)+bbp2(k,otrc)+bbp3(k,otrc)+bbg
+          ! backscatter due to HAB phytoplankton (P-n diatoms)
+             bbp3(k)=( (s3(i,k)*bp2_fac1)**bp2_exp )*bp_fac
+          ! total backscatter due to phytoplankton
+             bbp(k)=bbp1(k)+bbp2(k)+bbp3(k)+bbg
 #   else
-      bbp(i,k,otrc)=bbp1(k,otrc)+bbp2(k,otrc)+bbg
+             bbp(k)=bbp1(k)+bbp2(k)+bbg
 #   endif
-      a_abs(i,k,otrc)=ap(k,otrc)+adet(k,otrc)+                    &
-     &                acdom(k,otrc)+aw_abs(otrc)
+          ! backscatter due to seawater
+             bbw(k)=bbrat_sw*bw_abs*( a_bbw_salt + b_bbw_salt*salt(i,k) )
+          ! total backscattering coefficient
+             bb(k)=bbw(k)+bbp(k)
+          enddo   ! end k loop
 
-!Kpar method from Lee et al., (2005), 
+         !Kpar method from Lee et al., (2005)
+         ! use average a_abs and bb over portion of the water column above the kth level
+         aa_int=0.0_r8
+         bb_int=0.0_r8
+         z_int=0.0_r8
+         do k=N(ng),1,-1
+           aa_int=aa_int+a_abs(k)*hzl(i,k)
+           bb_int=bb_int+bb(k)*hzl(i,k)
+           z_int=z_int+hzl(i,k)
+           aa_avg=aa_int/z_int
+           bb_avg=bb_int/z_int
+ 
+           kpar1=(kapa0+kapa1*sqrt(aa_avg)+kapa2*bb_avg)*(1.0_r8+alpha0*sin(thetaa))
+           kpar2=(ksai0+ksai1*aa_avg+ksai2*bb_avg)*(alpha1+alpha2*(cos(thetaa)))
 
-      bbw(k,otrc)=0.5_r8*bw_abs(otrc)*(1.0_r8+0.3_r8*salt(i,k)     &
-     &   /37.0_r8)
-      bb(i,k,otrc)=bbw(k,otrc)+bbp(i,k,otrc)
-#   ifdef HAB
-      bts(i,k,otrc)=r_phy_POC*(1.0_r8/0.01_r8)*bbp1(k,otrc) +       &
-     &           r_phy_POC*(1.0_r8/0.006_r8)*bbp2(k,otrc) +         &
-     &           r_phy_POC*(1.0_r8/0.006_r8)*bbp3(k,otrc) +         &
-     & (1.0_r8-r_phy_POC)*(1.0_r8/0.015_r8)*(bbp1(k,otrc) +         &
-     &                bbp2(k,otrc) + bbp3(k,otrc)) +                &
-     &               (1.0_r8/0.020_r8)*bbg
-#   else
-      bts(i,k,otrc)=r_phy_POC*(1.0_r8/0.01_r8)*bbp1(k,otrc) +       &
-     &           r_phy_POC*(1.0_r8/0.006_r8)*bbp2(k,otrc) +         &
-     & (1.0_r8-r_phy_POC)*(1.0_r8/0.015_r8)*(bbp1(k,otrc) +         &
-     &                bbp2(k,otrc)) +                               &
-     &               (1.0_r8/0.020_r8)*bbg
-#   endif
-       bts(i,k,otrc) = bts(i,k,otrc) + bw_abs(otrc)   !add pure water b
-	   
-      enddo   !otrc (wavelength) loop
-       
-       kpar1(k)=(kapa0+kapa1*sqrt(a_abs(i,k,10))+kapa2*bb(i,k,10))  &
-     &          *(1.0_r8+alpha0*sin(thetaa))
-       kpar2(k)=(ksai0+ksai1*a_abs(i,k,10)+ksai2*bb(i,k,10))        &
-     &         *(alpha1+alpha2*(cos(thetaa)))
-       kd(i,k)= kpar1(k)+kpar2(k)/sqrt(1.0_r8+hzl(i,k))
-
-      enddo
+           kd(i,k)= kpar1+kpar2/sqrt(1.0_r8+abs(z_r(i,j,k)))
+         enddo
 
 #  ifdef MASKING
-      ELSE
+       ELSE
          do k=1,N(ng)
-            kd(i,k)=1000000.00_r8
+           kd(i,k)=1000000.00_r8
          enddo
-      END IF
+       END IF
 #  endif
       END DO I_LOOP
 
       RETURN
-      END SUBROUTINE optic_property
+      END SUBROUTINE kdPAR_compute
 #endif
 
 

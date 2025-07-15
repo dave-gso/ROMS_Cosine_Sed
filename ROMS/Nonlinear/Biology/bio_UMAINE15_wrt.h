@@ -26,7 +26,24 @@
      &                      gmaxs2(ng), (/0/), (/0/),                   &
      &                      ncid = ncid)
       IF (exit_flag.ne.NoError) RETURN
-
+#ifdef PHYTO_RESP
+	CALL netcdf_put_fvar (ng, model, ncname, 'rrb1',                  &
+     &                      rrb1(ng), (/0/), (/0/),                     &
+     &                      ncid = ncid)
+	IF (exit_flag.ne.NoError) RETURN
+	CALL netcdf_put_fvar (ng, model, ncname, 'rrg1',                  &
+     &                      rrg1(ng), (/0/), (/0/),                     &
+     &                      ncid = ncid)
+	IF (exit_flag.ne.NoError) RETURN
+	CALL netcdf_put_fvar (ng, model, ncname, 'rrb2',                  &
+     &                      rrb2(ng), (/0/), (/0/),                     &
+     &                      ncid = ncid)
+	IF (exit_flag.ne.NoError) RETURN
+	CALL netcdf_put_fvar (ng, model, ncname, 'rrg2',                  &
+     &                      rrg2(ng), (/0/), (/0/),                     &
+     &                      ncid = ncid)
+	IF (exit_flag.ne.NoError) RETURN
+#endif
       CALL netcdf_put_fvar (ng, model, ncname, 'beta1',                 &
      &                      beta1(ng), (/0/), (/0/),                    &
      &                      ncid = ncid)
@@ -172,6 +189,11 @@
      &                      ncid = ncid)
       IF (exit_flag.ne.NoError) RETURN
 
+      CALL netcdf_put_fvar (ng, model, ncname, 'bgamma5s',               &
+     &                      bgamma5s(ng), (/0/), (/0/),                  &
+     &                      ncid = ncid)
+      IF (exit_flag.ne.NoError) RETURN
+
       CALL netcdf_put_fvar (ng, model, ncname, 'bgamma6',               &
      &                      bgamma6(ng), (/0/), (/0/),                  &
      &                      ncid = ncid)
@@ -261,7 +283,16 @@
      &                      amaxs3(ng), (/0/), (/0/),                   &
      &                      ncid = ncid)
       IF (exit_flag.ne.NoError) RETURN
-
+# ifdef PHYTO_RESP
+	CALL netcdf_put_fvar (ng, model, ncname, 'rrb3',                  &
+     &                      rrb3(ng), (/0/), (/0/),                     &
+     &                      ncid = ncid)
+	IF (exit_flag.ne.NoError) RETURN
+	CALL netcdf_put_fvar (ng, model, ncname, 'rrg3',                  &
+     &                      rrg3(ng), (/0/), (/0/),                     &
+     &                      ncid = ncid)
+	IF (exit_flag.ne.NoError) RETURN
+# endif
       CALL netcdf_put_fvar (ng, model, ncname, 'parsats3',              &
      &                      parsats3(ng), (/0/), (/0/),                 &
      &                      ncid = ncid)
@@ -316,10 +347,51 @@
      &                      Chl2cs3_m(ng), (/0/), (/0/),                &
      &                      ncid = ncid)
       IF (exit_flag.ne.NoError) RETURN
+
 #endif
+	CALL netcdf_put_fvar (ng, model, ncname, 'q10_phyto_prod',        &
+     &                      q10_phyto_prod(ng), (/0/), (/0/),           &
+     &                      ncid = ncid)
+	IF (exit_flag.ne.NoError) RETURN
+
+	CALL netcdf_put_fvar (ng, model, ncname, 'q10_phyto_resp',        &
+     &                      q10_phyto_resp(ng), (/0/), (/0/),           &
+     &                      ncid = ncid)
+	IF (exit_flag.ne.NoError) RETURN
+
+	CALL netcdf_put_fvar (ng, model, ncname, 'q10_bact_remin',        &
+     &                      q10_bact_remin(ng), (/0/), (/0/),           &
+     &                      ncid = ncid)
+	IF (exit_flag.ne.NoError) RETURN
+
+	CALL netcdf_put_fvar (ng, model, ncname, 'q10_opal_dissol',       &
+     &                      q10_opal_dissol(ng), (/0/), (/0/),          &
+     &                      ncid = ncid)
+	IF (exit_flag.ne.NoError) RETURN
+
+	CALL netcdf_put_fvar (ng, model, ncname, 'q10_zoopl_resp',        &
+     &                      q10_zoopl_resp(ng), (/0/), (/0/),           &
+     &                      ncid = ncid)
+	IF (exit_flag.ne.NoError) RETURN
+
+	CALL netcdf_put_fvar (ng, model, ncname, 'q10_zoopl_graz',        &
+     &                      q10_zoopl_graz(ng), (/0/), (/0/),           &
+     &                      ncid = ncid)
+	IF (exit_flag.ne.NoError) RETURN
+
+	CALL netcdf_put_fvar (ng, model, ncname, 'q10_nitrif',            &
+     &                      q10_nitrif(ng), (/0/), (/0/),               &
+     &                      ncid = ncid)
+	IF (exit_flag.ne.NoError) RETURN
+
 #ifdef SEDBIO
       CALL netcdf_put_fvar (ng, model, ncname, 'bUmax',                 &
      &                      BUmax(ng,:), (/1/), (/nspc/),           &
+     &                      ncid = ncid)
+      IF (exit_flag.ne.NoError) RETURN
+
+      CALL netcdf_put_fvar (ng, model, ncname, 'bUmaxSi',               &
+     &                      BUmaxSi(ng,:), (/1/), (/nspc/),         &
      &                      ncid = ncid)
       IF (exit_flag.ne.NoError) RETURN
 

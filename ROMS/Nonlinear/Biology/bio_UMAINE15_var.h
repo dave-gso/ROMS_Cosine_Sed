@@ -341,6 +341,30 @@
 # endif
                 
 #ifdef DIAGNOSTICS_BIO
+# ifdef SEDBIO
+              CASE ('iDbio2(ibNO3fx)')
+                iDbio2(ibNO3fx)=varid
+              CASE ('iDbio2(ibNH4fx)')
+                iDbio2(ibNH4fx)=varid
+              CASE ('iDbio2(ibPO4fx)')
+                iDbio2(ibPO4fx)=varid
+              CASE ('iDbio2(ibSiO2fx)')
+                iDbio2(ibSiO2fx)=varid
+              CASE ('iDbio2(ibPONfx)')
+                iDbio2(ibPONfx)=varid
+              CASE ('iDbio2(ibPSifx)')
+                iDbio2(ibPSifx)=varid
+#  ifdef CARBON
+              CASE ('iDbio2(ibTICfx)')
+                iDbio2(ibTICfx)=varid
+              CASE ('iDbio2(ibAlkfx)')
+                iDbio2(ibAlkfx)=varid
+#  endif
+#  ifdef OXYGEN
+              CASE ('iDbio2(ibO2fx)')
+                iDbio2(ibO2fx)=varid
+#  endif
+# endif
 
 # ifdef CARBON
               CASE ('iDbio2(iCOfx)')
@@ -358,6 +382,20 @@
                 iDbio3(iPPro2)=varid
               CASE ('iDbio3(iNO3u)')
                 iDbio3(iNO3u)=varid
+# ifdef OXYGEN
+              CASE ('iDbio3(iO2pr)')
+                iDbio3(iO2pr)=varid
+              CASE ('iDbio3(initri)')
+                iDbio3(initri)=varid
+              CASE ('iDbio3(iremin)')
+                iDbio3(iremin)=varid
+              CASE ('iDbio3(izoopl)')
+                iDbio3(izoopl)=varid
+#  ifdef PHYTO_RESP
+		  CASE ('iDbio3(iphyres)')
+		    iDbio3(iphyres)=varid
+#  endif
+# endif
 #endif
 
 #ifdef SEDBIO

@@ -136,7 +136,9 @@
             Npts=load_r(Nval, Rval, Ngrids, bgamma4)
           CASE('bgamma5') 
             Npts=load_r(Nval, Rval, Ngrids, bgamma5)
-          CASE('bgamma6') 
+          CASE('bgamma5s')
+            Npts=load_r(Nval, Rval, Ngrids, bgamma5s)
+          CASE('bgamma6')
             Npts=load_r(Nval, Rval, Ngrids, bgamma6)
           CASE('bgamma7') 
             Npts=load_r(Nval, Rval, Ngrids, bgamma7)
@@ -172,6 +174,16 @@
           CASE('optic_upd_fac')
             Npts=load_r(Nval, Rval, Ngrids, optic_upd_fac)
 #endif
+#ifdef PHYTO_RESP
+          CASE('rrb1')
+            Npts=load_r(Nval, Rval, Ngrids, rrb1)
+          CASE('rrb2')
+            Npts=load_r(Nval, Rval, Ngrids, rrb2)
+          CASE('rrg1')
+            Npts=load_r(Nval, Rval, Ngrids, rrg1)
+          CASE('rrg2')
+            Npts=load_r(Nval, Rval, Ngrids, rrg2)
+#endif
 #ifdef HAB
           CASE('gmaxs3')
             Npts=load_r(Nval, Rval, Ngrids, gmaxs3)
@@ -199,7 +211,56 @@
             Npts=load_r(Nval, Rval, Ngrids, ro5H)
           CASE('Chl2cs3_m')
             Npts=load_r(Nval, Rval, Ngrids, Chl2cs3_m)
+#ifdef PHYTO_RESP
+          CASE('rrb3')
+            Npts=load_r(Nval, Rval, Ngrids, rrb3)
+          CASE('rrg3')
+            Npts=load_r(Nval, Rval, Ngrids, rrg3)
 #endif
+#endif
+	    CASE('q10_phyto_prod')
+		Npts=load_r(Nval, Rval, Ngrids, q10_phyto_prod)
+!	compute exponential constant to get this q10
+		DO ng=1,Ngrids
+		  a1(ng)=log(q10_phyto_prod(ng))/10.0_r8
+		END DO
+	    CASE('q10_phyto_resp')
+		Npts=load_r(Nval, Rval, Ngrids, q10_phyto_resp)
+!	compute exponential constant to get this q10
+		DO ng=1,Ngrids
+		  a2(ng)=log(q10_phyto_resp(ng))/10.0_r8
+		END DO
+	    CASE('q10_bact_remin')
+		Npts=load_r(Nval, Rval, Ngrids, q10_bact_remin)
+!	compute exponential constant to get this q10
+		DO ng=1,Ngrids
+		  a3(ng)=log(q10_bact_remin(ng))/10.0_r8
+		END DO
+	    CASE('q10_opal_dissol')
+		Npts=load_r(Nval, Rval, Ngrids, q10_opal_dissol)
+!	compute exponential constant to get this q10
+		DO ng=1,Ngrids
+		  a4(ng)=log(q10_opal_dissol(ng))/10.0_r8
+		END DO
+	    CASE('q10_zoopl_resp')
+		Npts=load_r(Nval, Rval, Ngrids, q10_zoopl_resp)
+!	compute exponential constant to get this q10
+		DO ng=1,Ngrids
+		  a5(ng)=log(q10_zoopl_resp(ng))/10.0_r8
+		END DO
+	    CASE('q10_zoopl_graz')
+		Npts=load_r(Nval, Rval, Ngrids, q10_zoopl_graz)
+!	compute exponential constant to get this q10
+		DO ng=1,Ngrids
+		  a6(ng)=log(q10_zoopl_graz(ng))/10.0_r8
+		END DO
+	    CASE('q10_nitrif')
+		Npts=load_r(Nval, Rval, Ngrids, q10_nitrif)
+!	compute exponential constant to get this q10
+		DO ng=1,Ngrids
+		  a7(ng)=log(q10_nitrif(ng))/10.0_r8
+		END DO
+
 #ifdef SEDBIO
           CASE ('BSEDPARNAM')
             DO i=1,LEN(bsedparnam)
@@ -493,6 +554,112 @@
               END DO
 #endif
 #ifdef DIAGNOSTICS_BIO
+# ifdef SEDBIO
+            CASE ('Dout(ibNO3fx)')
+              IF (iDbio2(ibNO3fx).eq.0) THEN
+                IF (Master) WRITE (out,40) 'iDbio2(ibNO3fx)'
+                exit_flag=5
+                RETURN
+              END IF
+              Npts=load_l(Nval, Cval, Ngrids, Lbio)
+              i=iDbio2(ibNO3fx)
+              DO ng=1,Ngrids
+                Dout(i,ng)=Lbio(ng)
+              END DO
+            CASE ('Dout(ibNH4fx)')
+              IF (iDbio2(ibNH4fx).eq.0) THEN
+                IF (Master) WRITE (out,40) 'iDbio2(ibNH4fx)'
+                exit_flag=5
+                RETURN
+              END IF
+              Npts=load_l(Nval, Cval, Ngrids, Lbio)
+              i=iDbio2(ibNH4fx)
+              DO ng=1,Ngrids
+                Dout(i,ng)=Lbio(ng)
+              END DO
+            CASE ('Dout(ibPO4fx)')
+              IF (iDbio2(ibPO4fx).eq.0) THEN
+                IF (Master) WRITE (out,40) 'iDbio2(ibPO4fx)'
+                exit_flag=5
+                RETURN
+              END IF
+              Npts=load_l(Nval, Cval, Ngrids, Lbio)
+              i=iDbio2(ibPO4fx)
+              DO ng=1,Ngrids
+                Dout(i,ng)=Lbio(ng)
+              END DO
+            CASE ('Dout(ibSiO2fx)')
+              IF (iDbio2(ibSiO2fx).eq.0) THEN
+                IF (Master) WRITE (out,40) 'iDbio2(ibSiO2fx)'
+                exit_flag=5
+                RETURN
+              END IF
+              Npts=load_l(Nval, Cval, Ngrids, Lbio)
+              i=iDbio2(ibSiO2fx)
+              DO ng=1,Ngrids
+                Dout(i,ng)=Lbio(ng)
+              END DO
+            CASE ('Dout(ibPONfx)')
+              IF (iDbio2(ibPONfx).eq.0) THEN
+                IF (Master) WRITE (out,40) 'iDbio2(ibPONfx)'
+                exit_flag=5
+                RETURN
+              END IF
+              Npts=load_l(Nval, Cval, Ngrids, Lbio)
+              i=iDbio2(ibPONfx)
+              DO ng=1,Ngrids
+                Dout(i,ng)=Lbio(ng)
+              END DO
+            CASE ('Dout(ibPSifx)')
+              IF (iDbio2(ibPSifx).eq.0) THEN
+                IF (Master) WRITE (out,40) 'iDbio2(ibPSifx)'
+                exit_flag=5
+                RETURN
+              END IF
+              Npts=load_l(Nval, Cval, Ngrids, Lbio)
+              i=iDbio2(ibPSifx)
+              DO ng=1,Ngrids
+                Dout(i,ng)=Lbio(ng)
+              END DO
+#  ifdef CARBON
+            CASE ('Dout(ibTICfx)')
+              IF (iDbio2(ibTICfx).eq.0) THEN
+                IF (Master) WRITE (out,40) 'iDbio2(ibTICfx)'
+                exit_flag=5
+                RETURN
+              END IF
+              Npts=load_l(Nval, Cval, Ngrids, Lbio)
+              i=iDbio2(ibTICfx)
+              DO ng=1,Ngrids
+                Dout(i,ng)=Lbio(ng)
+              END DO
+            CASE ('Dout(ibAlkfx)')
+              IF (iDbio2(ibAlkfx).eq.0) THEN
+                IF (Master) WRITE (out,40) 'iDbio2(ibAlkfx)'
+                exit_flag=5
+                RETURN
+              END IF
+              Npts=load_l(Nval, Cval, Ngrids, Lbio)
+              i=iDbio2(ibAlkfx)
+              DO ng=1,Ngrids
+                Dout(i,ng)=Lbio(ng)
+              END DO
+#  endif
+#  ifdef OXYGEN
+            CASE ('Dout(ibO2fx)')
+              IF (iDbio2(ibO2fx).eq.0) THEN
+                IF (Master) WRITE (out,40) 'iDbio2(ibO2fx)'
+                exit_flag=5
+                RETURN
+              END IF
+              Npts=load_l(Nval, Cval, Ngrids, Lbio)
+              i=iDbio2(ibO2fx)
+              DO ng=1,Ngrids
+                Dout(i,ng)=Lbio(ng)
+              END DO
+#  endif
+# endif
+
 # ifdef CARBON
             CASE ('Dout(iCOfx)')
               IF (iDbio2(iCOfx).eq.0) THEN
@@ -568,6 +735,68 @@
               DO ng=1,Ngrids
                 Dout(i,ng)=Lbio(ng)
               END DO
+# ifdef OXYGEN
+            CASE ('Dout(iO2pr)')
+              IF (iDbio3(iO2pr).eq.0) THEN
+                IF (Master) WRITE (out,40) 'iDbio3(iO2pr)'
+                exit_flag=5
+                RETURN
+              END IF
+              Npts=load_l(Nval, Cval, Ngrids, Lbio)
+              i=iDbio3(iO2pr)
+              DO ng=1,Ngrids
+                Dout(i,ng)=Lbio(ng)
+              END DO
+            
+            CASE ('Dout(initri)')
+              IF (iDbio3(initri).eq.0) THEN
+                IF (Master) WRITE (out,40) 'iDbio3(initri)'
+                exit_flag=5
+                RETURN
+              END IF
+              Npts=load_l(Nval, Cval, Ngrids, Lbio)
+              i=iDbio3(initri)
+              DO ng=1,Ngrids
+                Dout(i,ng)=Lbio(ng)
+              END DO
+            
+            CASE ('Dout(iremin)')
+              IF (iDbio3(iremin).eq.0) THEN
+                IF (Master) WRITE (out,40) 'iDbio3(iremin)'
+                exit_flag=5
+                RETURN
+              END IF
+              Npts=load_l(Nval, Cval, Ngrids, Lbio)
+              i=iDbio3(iremin)
+              DO ng=1,Ngrids
+                Dout(i,ng)=Lbio(ng)
+              END DO
+
+            CASE ('Dout(izoopl)')
+              IF (iDbio3(izoopl).eq.0) THEN
+                IF (Master) WRITE (out,40) 'iDbio3(izoopl)'
+                exit_flag=5
+                RETURN
+              END IF
+              Npts=load_l(Nval, Cval, Ngrids, Lbio)
+              i=iDbio3(izoopl)
+              DO ng=1,Ngrids
+                Dout(i,ng)=Lbio(ng)
+              END DO
+#  ifdef PHYTO_RESP
+            CASE ('Dout(iphyres)')
+              IF (iDbio3(iphyres).eq.0) THEN
+                IF (Master) WRITE (out,40) 'iDbio3(iphyres)'
+                exit_flag=5
+                RETURN
+              END IF
+              Npts=load_l(Nval, Cval, Ngrids, Lbio)
+              i=iDbio3(iphyres)
+              DO ng=1,Ngrids
+                Dout(i,ng)=Lbio(ng)
+              END DO
+#  endif
+# endif
 #endif
  
           END SELECT
@@ -598,6 +827,16 @@
      &            '[1/day].'
             WRITE (out,100) gmaxs2(ng), 'gmaxs2',                      &
      &            'Maximum specific growth rate of diatom [1/day].'
+#ifdef PHYTO_RESP
+            WRITE (out,100) rrb1(ng), 'rrb1',                          &
+     &            'basal respiration rate of small phyto. [1/day].'
+            WRITE (out,100) rrg1(ng), 'rrg1',                          &
+     &            'production-based resp. rate of small phyto. []'     
+		WRITE (out,100) rrb2(ng), 'rrb2',                          &
+     &            'basal respiration rate of diatom [1/day].'
+		WRITE (out,100) rrg2(ng), 'rrg2',                          &
+     &            'production-based resp. rate of diatom []'
+#endif
             WRITE (out,100) beta1(ng), 'beta1',                        &
      &            'Microzooplankton maximum grazing rate [1/day].'
             WRITE (out,100) beta2(ng), 'beta2',                        &
@@ -677,7 +916,9 @@
             WRITE (out,100) bgamma4(ng), 'bgamma4',                    &
      &            'Death rate of large phytoplankton [1/day].'
             WRITE (out,100) bgamma5(ng), 'bgamma5',                    &
-     &            'Decay rate of detritus [1/day].'
+     &            'Decay rate of nitrogenous detritus [1/day].'
+            WRITE (out,100) bgamma5s(ng), 'bgamma5s',                    &
+     &            'Decay rate of silicious detritus [1/day].'
             WRITE (out,100) bgamma6(ng), 'bgamma6',                    &
      &            ' '
             WRITE (out,100) bgamma7(ng), 'bgamma7',                    &
@@ -719,6 +960,12 @@
             WRITE (out,110) amaxs3(ng), 'amaxs3',                      &
      &            'Initial slope of P-I curve of HAB',                 &
      &            'phytoplankton [1/(Watts/m2)/day].'
+#  ifdef PHYTO_RESP
+		WRITE (out,100) rrb3(ng), 'rrb3',                          &
+     &            'basal respiration rate of HAB phyto. [1/day].'
+		WRITE (out,100) rrg3(ng), 'rrg3',                          &
+     &            'production-based resp. rate of HAB phyto. []'
+#  endif
             WRITE (out,110) parsats3(ng), 'parsats3',                  &
      &            'PAR saturation onset parameter of HAB phyto',       &
      &            '[Watts/m2].'
@@ -750,6 +997,21 @@
      &            'Maximum chlorophyll to carbon ratio for',           &
      &            'HAB phyto [mg_Chl/mg_C)].'
 #endif
+		WRITE (out,110) q10_phyto_prod(ng), 'q10_phyto_prod',      &
+     &            'Q10 for phytoplankton production [nondimensional]'   
+		WRITE (out,110) q10_phyto_resp(ng), 'q10_phyto_resp',      &
+     &            'Q10 for phytoplankton respiration [nondimensional]'  
+		WRITE (out,110) q10_bact_remin(ng), 'q10_bact_remin',      &
+     &            'Q10 for bacterial remineralization [nondimensional]' 
+		WRITE (out,110) q10_opal_dissol(ng), 'q10_opal_dissol',    &
+     &            'Q10 for opal dissolution [nondimensional]'  
+		WRITE (out,110) q10_zoopl_resp(ng), 'q10_zoopl_resp',      &
+     &            'Q10 for zooplankton respiration [nondimensional]' 
+		WRITE (out,110) q10_zoopl_graz(ng), 'q10_zoopl_graz',      &
+     &            'Q10 for zooplankton grazing [nondimensional]' 
+		WRITE (out,110) q10_nitrif(ng), 'q10_nitrif',      	     &
+     &            'Q10 for nitrification [nondimensional]' 
+
 #ifdef SEDBIO
             fname=bsedparnam
             IF (.not.find_file(ng, fname, 'BSEDPOSNAM')) THEN

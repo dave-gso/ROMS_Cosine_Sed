@@ -73,6 +73,13 @@
                     bUmax(ng,itrc)=Rbio(itrc,ng)
                 END DO
              END DO
+          CASE('bUmaxSi')
+            Npts=load_r(Nval, Rval, nspc*Ngrids, Rbio)
+            DO ng=1,Ngrids
+                DO itrc=1,nspc
+                    bUmaxSi(ng,itrc)=Rbio(itrc,ng)
+                END DO
+            END DO
           CASE('bdep')
             Npts=load_r(Nval, Rval, Ngrids, bdep)
           CASE('balpha')
@@ -204,6 +211,11 @@
             DO itrc=1,nspc
               WRITE (out,90) bUmax(ng,itrc), 'bUmax', itrc,                  &
      &              'Maximum particulate organic matter decay rate',   &
+     &              'for POM class [1/day] '
+            ENDDO
+            DO itrc=1,nspc
+              WRITE (out,90) bUmaxSi(ng,itrc), 'bUmaxSi', itrc,              &
+     &              'Maximum particulate silicate decay rate',         &
      &              'for POM class [1/day] '
             ENDDO
             WRITE (out,100) bdep(ng), 'bdep',                          &
